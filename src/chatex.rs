@@ -272,6 +272,45 @@ impl Exchange {
             .ok()
     }
 
+    pub fn get_my_orders(
+        &self,
+        pair: Option<coin::CoinPair>,
+        status: Option<String>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+        access_context: &AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.create_get_orders_uri(
+            access_context.base.base_url.clone());
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.my.as_ref());
+        if let Some(pair) = pair {
+            url.query_pairs_mut()
+                .append_pair("pair", String::from(pair).as_ref());
+        }
+        if let Some(status) = status {
+            url.query_pairs_mut()
+                .append_pair("status", status.as_ref());
+        }
+        let offset = if let Some(offset) = offset {
+            offset
+        } else {
+            0
+        };
+        let limit = if let Some(limit) = limit {
+            limit
+        } else {
+            50
+        };
+        url.query_pairs_mut()
+            .append_pair("offset", offset.to_string().as_ref())
+            .append_pair("limit", limit.to_string().as_ref());
+        create_get_request_with_url(
+            &access_context.access_token,
+            &url)
+    }
+
     pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
         read_body::<models::Orders>(body)
             .await
