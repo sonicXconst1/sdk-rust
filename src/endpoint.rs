@@ -210,6 +210,38 @@ impl Exchange {
             url.query_pairs_mut()
                 .append_pair("status", status.as_ref());
         }
+        Self::add_offset_and_limit_parameters(&mut url, offset, limit);
+        create_get_request_with_url(
+            &access_context.access_token,
+            &url)
+    }
+
+    pub fn get_trades(
+        &self,
+        order_id: Option<u32>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+        access_context: &chatex::AccessContext
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.trades.clone();
+        if let Some(order_id) = order_id {
+            url.query_pairs_mut()
+                .append_pair("order_id", order_id.to_string().as_ref());
+        }
+        Self::add_offset_and_limit_parameters(
+            &mut url,
+            offset,
+            limit);
+        create_get_request_with_url(
+            &access_context.access_token,
+            &url)
+    }
+
+    fn add_offset_and_limit_parameters(
+        url: &mut url::Url,
+        offset: Option<u32>,
+        limit: Option<u32>,
+    ) {
         let offset = if let Some(offset) = offset {
             offset
         } else {
@@ -223,9 +255,6 @@ impl Exchange {
         url.query_pairs_mut()
             .append_pair("offset", offset.to_string().as_ref())
             .append_pair("limit", limit.to_string().as_ref());
-        create_get_request_with_url(
-            &access_context.access_token,
-            &url)
     }
 }
 

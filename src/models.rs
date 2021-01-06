@@ -82,3 +82,16 @@ pub struct OrderRequest {
     pub pair: String,
     pub rate: String,
 }
+
+pub type Trades = Vec<Trade>;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Trade {
+    amount: String,
+    created_at: String,
+    fee: String,
+    id: u32,
+    order: Order,
+    received_amount: String,
+    updated_at: String,
+}
