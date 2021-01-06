@@ -31,32 +31,32 @@ pub struct Profile {
 
 #[derive(serde::Deserialize, Debug)]
 pub struct AML5Limits {
-    current_turnover: String,
-    current_withdraw: String,
-    turnover_limit: String,
-    withdraw_limit: String,
-    withdraw_limit_daily: String,
+    pub current_turnover: String,
+    pub current_withdraw: String,
+    pub turnover_limit: String,
+    pub withdraw_limit: String,
+    pub withdraw_limit_daily: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Verification {
-    current_level: String
+    pub current_level: String
 }
 
 pub type Balance = Vec<Currency>;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Currency {
-    amount: String,
-    coin: String,
-    held: String,
+    pub amount: String,
+    pub coin: String,
+    pub held: String,
 }
 
 pub type Coins = Vec<Coin>;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Coin {
-    decimals: u32,
-    full_name: String,
-    name: String
+    pub decimals: u32,
+    pub full_name: String,
+    pub name: String
 }

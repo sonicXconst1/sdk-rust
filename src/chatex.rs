@@ -38,11 +38,20 @@ impl AccessContext {
 pub struct Chatex {
     pub auth: Auth,
     pub me: Me,
+    pub coin: Coin,
 }
 
 impl Chatex {
-    pub fn new(auth: Auth, me: Me) -> Chatex {
-        Chatex { auth, me }
+    pub fn new(
+        auth: Auth,
+        me: Me,
+        coin: Coin
+    ) -> Chatex {
+        Chatex { 
+            auth,
+            me,
+            coin
+        }
     }
 }
 
@@ -120,6 +129,51 @@ impl Me {
 
     pub async fn extract_balance(body: hyper::Body) -> Option<models::Balance> {
         read_body::<models::Balance>(body)
+            .await
+    }
+}
+
+pub struct Coin {
+    coins: String,
+}
+
+impl Coin {
+    pub fn new() -> Coin {
+        Coin {
+            coins: String::from("coins"),
+        }
+    }
+
+    pub fn coins(
+        &self,
+        access_context: &AccessContext,
+    ) ->  Option<http::request::Request<hyper::Body>> {
+        let uri = format!("{}{}", access_context.base.base_uri, self.coins);
+        create_get_request_with_uri(&access_context.access_token, &uri)
+    }
+
+    pub fn coin(
+        &self,
+        coin_name: super::coin::Coin,
+        access_context: &AccessContext,
+    ) -> Option<http::request::Request<hyper::Body>> {
+        // Bad solution. There should be way to implement in without allocations.
+        let coin_name: String = coin_name.into();
+        let uri = format!(
+            "{}{}/{}",
+            access_context.base.base_uri,
+            self.coins,
+            coin_name);
+        create_get_request_with_uri(&access_context.access_token, &uri)
+    }
+
+    pub async fn extract_coins(body: hyper::Body) -> Option<models::Coins> {
+        read_body::<models::Coins>(body)
+            .await
+    }
+
+    pub async fn extract_coin(body: hyper::Body) -> Option<models::Coin> {
+        read_body::<models::Coin>(body)
             .await
     }
 }
