@@ -75,3 +75,10 @@ pub struct Order {
     pub status: String,
     pub updated_at: String,
 }
+
+#[derive(serde::Serialize, Debug)]
+pub struct OrderRequest {
+    pub amount: String,
+    pub pair: String,
+    pub rate: String,
+}

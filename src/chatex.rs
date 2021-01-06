@@ -78,7 +78,7 @@ impl Auth {
     pub fn access_token(
         &self,
         context: &ApiContext,
-    ) -> Option<http::request::Request<hyper::Body>> {
+    ) -> Option<http::Request<hyper::Body>> {
         let mut url = context.base.base_url.clone();
         url.path_segments_mut()
             .unwrap()
@@ -114,7 +114,7 @@ impl Me {
     pub fn root(
         &self,
         access_context: &AccessContext,
-    ) -> Option<http::request::Request<hyper::Body>> {
+    ) -> Option<http::Request<hyper::Body>> {
         let mut url = access_context.base.base_url.clone();
         url.path_segments_mut()
             .unwrap()
@@ -125,7 +125,7 @@ impl Me {
     pub fn balance(
         &self,
         access_context: &AccessContext,
-    ) -> Option<http::request::Request<hyper::Body>> {
+    ) -> Option<http::Request<hyper::Body>> {
         let mut url = access_context.base.base_url.clone();
         url.path_segments_mut()
             .unwrap()
@@ -159,7 +159,7 @@ impl Coin {
     pub fn coins(
         &self,
         access_context: &AccessContext,
-    ) ->  Option<http::request::Request<hyper::Body>> {
+    ) ->  Option<http::Request<hyper::Body>> {
         let mut url = access_context.base.base_url.clone();
         url.path_segments_mut()
             .unwrap()
@@ -171,7 +171,7 @@ impl Coin {
         &self,
         coin_name: super::coin::Coin,
         access_context: &AccessContext,
-    ) -> Option<http::request::Request<hyper::Body>> {
+    ) -> Option<http::Request<hyper::Body>> {
         // Bad solution. There should be way to implement in without allocations.
         let coin_name: String = coin_name.into();
         let mut url = access_context.base.base_url.clone();
@@ -220,7 +220,7 @@ impl Exchange {
         offset: Option<u32>,
         limit: Option<u32>,
         access_context: &AccessContext,
-    ) -> Option<http::request::Request<hyper::Body>> {
+    ) -> Option<http::Request<hyper::Body>> {
         let mut orders_url = self.create_get_orders_uri(
             access_context.base.base_url.clone());
         let pair_string = String::from(pair);
@@ -248,6 +248,30 @@ impl Exchange {
             .ok()
     }
 
+    pub fn post_order(
+        &self,
+        pair: coin::CoinPair,
+        amount: String,
+        rate: String,
+        access_context: &AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let orders_url = self.create_get_orders_uri(
+            access_context.base.base_url.clone());
+        let pair = String::from(pair);
+        let order_request = models::OrderRequest {
+            pair,
+            amount,
+            rate,
+        };
+        let order_request = serde_json::to_vec(&order_request).unwrap();
+        create_default_request_builder(&access_context.access_token)
+            .method(hyper::Method::POST)
+            .uri(orders_url.to_string())
+            .header("Content-Type", "application/json")
+            .body(hyper::body::Body::from(order_request))
+            .ok()
+    }
+
     pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
         read_body::<models::Orders>(body)
             .await
@@ -272,7 +296,7 @@ fn create_default_request_builder(token: &str) -> http::request::Builder {
 fn create_get_request_with_url(
     token: &str,
     url: &url::Url,
-) -> Option<http::request::Request<hyper::Body>> {
+) -> Option<http::Request<hyper::Body>> {
     create_default_request_builder(token)
         .method(hyper::Method::GET)
         .uri(url.to_string())
