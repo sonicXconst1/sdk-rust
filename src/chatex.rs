@@ -1,15 +1,19 @@
 use http;
 use hyper;
+use url;
 use super::models;
+use super::coin;
 
 #[derive(Clone)]
 pub struct BaseContext {
-    base_uri: String,
+    base_url: url::Url
 }
 
 impl BaseContext {
-    pub fn new(base_uri: String) -> BaseContext {
-        BaseContext { base_uri }
+    pub fn new(base_url: url::Url) -> BaseContext {
+        BaseContext { 
+            base_url 
+        }
     }
 }
 
@@ -39,18 +43,21 @@ pub struct Chatex {
     pub auth: Auth,
     pub me: Me,
     pub coin: Coin,
+    pub exchange: Exchange,
 }
 
 impl Chatex {
     pub fn new(
         auth: Auth,
         me: Me,
-        coin: Coin
+        coin: Coin,
+        exchange: Exchange,
     ) -> Chatex {
         Chatex { 
             auth,
             me,
-            coin
+            coin,
+            exchange,
         }
     }
 }
@@ -72,13 +79,14 @@ impl Auth {
         &self,
         context: &ApiContext,
     ) -> Option<http::request::Request<hyper::Body>> {
-        let uri = format!(
-            "{}{}/{}",
-            context.base.base_uri, self.root, self.access_token
-        );
+        let mut url = context.base.base_url.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.root.as_ref())
+            .push(self.access_token.as_ref());
         create_default_request_builder(&context.api_key)
             .method(hyper::Method::POST)
-            .uri(uri)
+            .uri(url.to_string())
             .body(hyper::Body::empty())
             .ok()
     }
@@ -107,19 +115,23 @@ impl Me {
         &self,
         access_context: &AccessContext,
     ) -> Option<http::request::Request<hyper::Body>> {
-        let uri = format!("{}{}", access_context.base.base_uri, self.root);
-        create_get_request_with_uri(&access_context.access_token, &uri)
+        let mut url = access_context.base.base_url.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.root.as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
     }
 
     pub fn balance(
         &self,
         access_context: &AccessContext,
     ) -> Option<http::request::Request<hyper::Body>> {
-        let uri = format!(
-            "{}{}/{}",
-            access_context.base.base_uri, self.root, self.balance
-        );
-        create_get_request_with_uri(&access_context.access_token, &uri)
+        let mut url = access_context.base.base_url.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.root.as_ref())
+            .push(self.balance.as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
     }
 
     pub async fn extract_basic_info(body: hyper::Body) -> Option<models::BasicInfo> {
@@ -148,8 +160,11 @@ impl Coin {
         &self,
         access_context: &AccessContext,
     ) ->  Option<http::request::Request<hyper::Body>> {
-        let uri = format!("{}{}", access_context.base.base_uri, self.coins);
-        create_get_request_with_uri(&access_context.access_token, &uri)
+        let mut url = access_context.base.base_url.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.coins.as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
     }
 
     pub fn coin(
@@ -159,12 +174,12 @@ impl Coin {
     ) -> Option<http::request::Request<hyper::Body>> {
         // Bad solution. There should be way to implement in without allocations.
         let coin_name: String = coin_name.into();
-        let uri = format!(
-            "{}{}/{}",
-            access_context.base.base_uri,
-            self.coins,
-            coin_name);
-        create_get_request_with_uri(&access_context.access_token, &uri)
+        let mut url = access_context.base.base_url.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(self.coins.as_ref())
+            .push(coin_name.as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
     }
 
     pub async fn extract_coins(body: hyper::Body) -> Option<models::Coins> {
@@ -178,19 +193,89 @@ impl Coin {
     }
 }
 
+pub struct Exchange {
+    root: String,
+    orders: String,
+    my: String,
+    trades: String,
+    activate: String,
+    deactivate: String,
+}
+
+impl Exchange {
+    pub fn new() -> Exchange {
+        Exchange {
+            root: "exchange".to_owned(),
+            orders: "orders".to_owned(),
+            my: "my".to_owned(),
+            trades: "trades".to_owned(),
+            activate: "activate".to_owned(),
+            deactivate: "deactivate".to_owned(),
+        }
+    }
+
+    pub fn get_orders(
+        &self,
+        pair: coin::CoinPair,
+        offset: Option<u32>,
+        limit: Option<u32>,
+        access_context: &AccessContext,
+    ) -> Option<http::request::Request<hyper::Body>> {
+        let mut orders_url = self.create_get_orders_uri(
+            access_context.base.base_url.clone());
+        let pair_string = String::from(pair);
+        orders_url.query_pairs_mut()
+            .append_pair("pair", pair_string.as_ref());
+        let offset = if let Some(offset) = &offset {
+            offset
+        } else {
+            &0
+        };
+        orders_url.query_pairs_mut()
+            .append_pair("offset", &offset.to_string());
+        let limit = if let Some(limit) = &limit {
+            limit
+        } else {
+            &50
+        };
+        orders_url.query_pairs_mut()
+            .append_pair("limit", &limit.to_string());
+        let orders_url = orders_url.into_string();
+        create_default_request_builder(&access_context.access_token)
+            .method(hyper::Method::GET)
+            .uri(orders_url)
+            .body(hyper::Body::empty())
+            .ok()
+    }
+
+    pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
+        read_body::<models::Orders>(body)
+            .await
+    }
+
+    fn create_get_orders_uri(&self, base_url: url::Url) -> url::Url {
+        let mut orders_url = url::Url::from(base_url);
+        orders_url.path_segments_mut()
+            .unwrap()
+            .push(self.root.as_ref())
+            .push(self.orders.as_ref());
+        orders_url
+    }
+}
+
 fn create_default_request_builder(token: &str) -> http::request::Builder {
     http::request::Builder::new()
         .header("Accept", "application/json")
         .header("Authorization", format!("Bearer {}", &token))
 }
 
-fn create_get_request_with_uri(
+fn create_get_request_with_url(
     token: &str,
-    uri: &str,
+    url: &url::Url,
 ) -> Option<http::request::Request<hyper::Body>> {
     create_default_request_builder(token)
         .method(hyper::Method::GET)
-        .uri(uri)
+        .uri(url.to_string())
         .body(hyper::Body::empty())
         .ok()
 }

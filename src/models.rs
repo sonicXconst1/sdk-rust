@@ -60,3 +60,18 @@ pub struct Coin {
     pub full_name: String,
     pub name: String
 }
+
+pub type Orders = Vec<Order>;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Order {
+    pub amount: String,
+    pub created_at: String,
+    pub id: u32,
+    pub initial_amount: String,
+    pub is_owner: bool,
+    pub pair: String,
+    pub rate: String,
+    pub status: String,
+    pub updated_at: String,
+}

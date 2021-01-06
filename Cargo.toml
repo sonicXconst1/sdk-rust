@@ -11,3 +11,4 @@ serde = { version = "1.*", features = ["derive"] }
 http = { version = "0.*" }
 hyper = { version = "0.*", features = ["full"]}
 serde_json = { version = "1.*" }
+url = { version = "2.*" }

@@ -28,6 +28,26 @@ pub enum Coin {
     Unknown(String)
 }
 
+pub struct CoinPair {
+    pub left: Coin,
+    pub right: Coin,
+}
+
+impl CoinPair {
+    pub fn new(left: Coin, right: Coin) -> CoinPair {
+        CoinPair {
+            left,
+            right,
+        }
+    }
+}
+
+impl From<CoinPair> for String {
+    fn from(pair: CoinPair) -> String {
+        format!("{}/{}", String::from(pair.left), String::from(pair.right))
+    }
+}
+
 impl From<&str> for Coin {
     fn from(coin: &str) -> Coin {
         match coin {
