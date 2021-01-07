@@ -101,3 +101,9 @@ pub struct Trade {
     received_amount: String,
     updated_at: String,
 }
+
+#[derive(serde::Serialize, Debug)]
+pub struct CreateTradeRequest {
+    pub amount: String,
+    pub rate: String,
+}
