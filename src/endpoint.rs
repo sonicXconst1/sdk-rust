@@ -226,13 +226,26 @@ impl Exchange {
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
-        let order = serde_json::to_vec(&order)
-            .unwrap();
+        let order = serde_json::to_vec(&order).unwrap();
         create_default_request_builder(&access_context.access_token)
             .method(hyper::Method::PUT)
             .uri(url.to_string())
             .header("Content-Type", "application/json")
             .body(hyper::Body::from(order))
+            .ok()
+    }
+
+    pub fn delete_order_by_id(
+        &self,
+        id: &str,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.orders.clone();
+        url.path_segments_mut().unwrap().push(id);
+        create_default_request_builder(&access_context.access_token)
+            .method(hyper::Method::DELETE)
+            .uri(url.to_string())
+            .body(hyper::Body::empty())
             .ok()
     }
 
