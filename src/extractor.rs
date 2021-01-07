@@ -39,6 +39,11 @@ pub async fn extract_trades(body: hyper::Body) -> Option<models::Trades> {
         .await
 }
 
+pub async fn extract_trade(body: hyper::Body) -> Option<models::Trade> {
+    read_body::<models::Trade>(body)
+        .await
+}
+
 async fn read_body<TResult>(body: hyper::body::Body) -> Option<TResult>
 where
     TResult: serde::de::DeserializeOwned,
