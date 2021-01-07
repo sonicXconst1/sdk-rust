@@ -34,6 +34,11 @@ pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
         .await
 }
 
+pub async fn extract_order(body: hyper::Body) -> Option<models::Order> {
+    read_body::<models::Order>(body)
+        .await
+}
+
 pub async fn extract_trades(body: hyper::Body) -> Option<models::Trades> {
     read_body::<models::Trades>(body)
         .await

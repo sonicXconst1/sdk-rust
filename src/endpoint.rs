@@ -208,6 +208,34 @@ impl Exchange {
         create_get_request_with_url(&access_context.access_token, &url)
     }
 
+    pub fn get_order_by_id(
+        &self,
+        id: &str,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.orders.clone();
+        url.path_segments_mut().unwrap().push(id);
+        create_get_request_with_url(&access_context.access_token, &url)
+    }
+
+    pub fn put_order_by_id(
+        &self,
+        id: &str,
+        order: models::UpdateOrder,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.orders.clone();
+        url.path_segments_mut().unwrap().push(id);
+        let order = serde_json::to_vec(&order)
+            .unwrap();
+        create_default_request_builder(&access_context.access_token)
+            .method(hyper::Method::PUT)
+            .uri(url.to_string())
+            .header("Content-Type", "application/json")
+            .body(hyper::Body::from(order))
+            .ok()
+    }
+
     fn add_offset_and_limit_parameters(
         url: &mut url::Url,
         offset: Option<u32>,
