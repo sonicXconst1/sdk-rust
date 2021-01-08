@@ -1,4 +1,7 @@
 extern crate url;
+extern crate isocountry;
+extern crate iso_currency;
+extern crate isolanguage_1;
 pub mod models;
 pub mod chatex;
 pub mod coin;

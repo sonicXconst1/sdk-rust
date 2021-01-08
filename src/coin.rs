@@ -28,6 +28,34 @@ pub enum Coin {
     Unknown(String)
 }
 
+impl Coin {
+    pub fn get_name(&self) -> &str {
+        match self {
+            Coin::BTC => "btc",
+            Coin::LTC => "ltc",
+            Coin::BCH => "bch",
+            Coin::XRP => "xrp",
+            Coin::BTG => "btg",
+            Coin::ETH => "eth",
+            Coin::TRX => "trx",
+            Coin::DASH => "dash",
+            Coin::USDT => "usdt",
+            Coin::TON => "ton_crystal",
+            Coin::Unknown(name) => name
+        }
+    }
+}
+
+impl std::fmt::Display for Coin {
+    fn fmt(
+        &self,
+        formatter: &mut std::fmt::Formatter,
+    ) -> Result<(), std::fmt::Error> {
+        formatter.write_str(self.get_name())
+    }
+
+}
+
 pub struct CoinPair {
     pub left: Coin,
     pub right: Coin,

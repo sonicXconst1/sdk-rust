@@ -2,6 +2,10 @@ use super::chatex;
 use super::coin;
 use super::models;
 use url;
+use iso_currency;
+use isocountry;
+use isolanguage_1;
+use iso8601;
 
 pub struct Profile {
     auth: url::Url,
@@ -169,7 +173,7 @@ impl Exchange {
         if let Some(status) = status {
             url.query_pairs_mut().append_pair("status", status.as_ref());
         }
-        Self::add_offset_and_limit_parameters(&mut url, offset, limit);
+        add_offset_and_limit_parameters(&mut url, offset, limit);
         create_get_request_with_url(&access_context.access_token, &url)
     }
 
@@ -185,7 +189,7 @@ impl Exchange {
             url.query_pairs_mut()
                 .append_pair("order_id", order_id.to_string().as_ref());
         }
-        Self::add_offset_and_limit_parameters(&mut url, offset, limit);
+        add_offset_and_limit_parameters(&mut url, offset, limit);
         create_get_request_with_url(&access_context.access_token, &url)
     }
 
@@ -287,22 +291,92 @@ impl Exchange {
             .body(hyper::Body::from(trade))
             .ok()
     }
-
-    fn add_offset_and_limit_parameters(
-        url: &mut url::Url,
-        offset: Option<u32>,
-        limit: Option<u32>,
-    ) {
-        let offset = if let Some(offset) = offset { offset } else { 0 };
-        let limit = if let Some(limit) = limit { limit } else { 50 };
-        url.query_pairs_mut()
-            .append_pair("offset", offset.to_string().as_ref())
-            .append_pair("limit", limit.to_string().as_ref());
-    }
 }
 
 pub struct Invoice {
     invoices: url::Url,
+}
+
+impl Invoice {
+    const INVOICES: &'static str = "invoices";
+
+    pub fn new(base_context: &chatex::BaseContext) -> Invoice {
+        let mut invoices = base_context.base_url.clone();
+        invoices.path_segments_mut()
+            .unwrap()
+            .push(Self::INVOICES);
+        Invoice {
+            invoices,
+        }
+    }
+    pub fn get_invoices(
+        &self,
+        coins: Option<&[coin::Coin]>,
+        fiat: Option<&[iso_currency::Currency]>,
+        country_code: Option<&[isocountry::CountryCode]>,
+        payment_system_id: Option<&[models::PaymentSystemId]>,
+        lang_id: Option<&[isolanguage_1::LanguageCode]>,
+        status: Option<&[models::InvoiceStatus]>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+        date_start: Option<iso8601::Date>,
+        date_end: Option<iso8601::Date>,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.invoices.clone();
+        if let Some(coins) = coins {
+            let coins = Self::slice_to_string(coins);
+            url.query_pairs_mut()
+                .append_pair("coins", coins.as_ref());
+        }
+        if let Some(fiat) = fiat {
+            let fiat = Self::slice_to_string(fiat);
+            url.query_pairs_mut()
+                .append_pair("fiat", fiat.as_ref());
+        }
+        if let Some(country_code) = country_code {
+            let country_code = Self::slice_to_string(country_code);
+            url.query_pairs_mut()
+                .append_pair("country_code", country_code.as_ref());
+        }
+        if let Some(payment_system_id) = payment_system_id {
+            let payment_system_id = Self::slice_to_string(payment_system_id);
+            url.query_pairs_mut()
+                .append_pair("payment_system_id", payment_system_id.as_ref());
+        }
+        if let Some(lang_id) = lang_id {
+            let lang_id = Self::slice_to_string(lang_id);
+            url.query_pairs_mut()
+                .append_pair("lang_id", lang_id.as_ref());
+        }
+        if let Some(status) = status {
+            Self::slice_to_string(status);
+        }
+        add_offset_and_limit_parameters(&mut url, offset, limit);
+        if let Some(date_start) = date_start {
+            let date_start = format!("{}", date_start);
+            url.query_pairs_mut()
+                .append_pair("date_start", date_start.as_ref());
+        }
+        if let Some(date_end) = date_end {
+            let date_end = format!("{}", date_end);
+            url.query_pairs_mut()
+                .append_pair("date_end", date_end.as_ref());
+        }
+        create_get_request_with_url(
+            &access_context.access_token,
+            &url)
+
+    }
+
+    fn slice_to_string<T>(slice: &[T]) -> String 
+    where T: std::fmt::Display {
+        let mut result = String::with_capacity(slice.len() * 4);
+        for item in slice.iter() {
+            result.push_str(format!("{}", item).as_ref());
+        }
+        result
+    }
 }
 
 pub struct PaymentSystem {
@@ -334,4 +408,16 @@ fn create_post_request_with_url(token: &str, url: &url::Url) -> Option<http::Req
     create_post_request_builder_with_url(token, url)
         .body(hyper::Body::empty())
         .ok()
+}
+
+fn add_offset_and_limit_parameters(
+    url: &mut url::Url,
+    offset: Option<u32>,
+    limit: Option<u32>,
+) {
+    let offset = if let Some(offset) = offset { offset } else { 0 };
+    let limit = if let Some(limit) = limit { limit } else { 50 };
+    url.query_pairs_mut()
+        .append_pair("offset", offset.to_string().as_ref())
+        .append_pair("limit", limit.to_string().as_ref());
 }

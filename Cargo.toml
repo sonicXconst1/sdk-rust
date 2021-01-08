@@ -12,3 +12,7 @@ http = { version = "0.*" }
 hyper = { version = "0.*", features = ["full"]}
 serde_json = { version = "1.*" }
 url = { version = "2.*" }
+isocountry = { version = "0.3.*" }
+iso_currency = { version = "0.4.*" }
+isolanguage-1 = { version = "0.2.*", features = ["serde"] }
+iso8601 = { version = "0.4.0" }

@@ -107,3 +107,45 @@ pub struct CreateTradeRequest {
     pub amount: String,
     pub rate: String,
 }
+
+pub type Invoices = Vec<Invoice>;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Invoice {
+    pub amount: f64,
+    pub callback_url: String,
+    pub coin: String,
+    pub country_code: String,
+    pub created_at: String,
+    pub fiat: String,
+    pub id: String,
+    pub lang_id: String,
+    pub payment_system_id: PaymentSystemId,
+    pub payment_url: String,
+    pub redirect_url: String,
+    pub status: String,
+}
+
+pub type PaymentSystemId = u32;
+
+#[derive(serde::Serialize, Debug)]
+pub enum InvoiceStatus {
+    Unassigned,
+    Active,
+    Completed,
+    Canceled,
+}
+
+impl std::fmt::Display for InvoiceStatus {
+    fn fmt(
+        &self,
+        formatter: &mut std::fmt::Formatter,
+    ) -> Result<(), std::fmt::Error> {
+        match self {
+            InvoiceStatus::Unassigned => formatter.write_str("UNASSIGNED"),
+            InvoiceStatus::Active => formatter.write_str("ACTIVE"),
+            InvoiceStatus::Completed => formatter.write_str("COMPLETED"),
+            InvoiceStatus::Canceled => formatter.write_str("CANCELED")
+        }
+    }
+}

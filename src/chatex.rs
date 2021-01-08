@@ -40,6 +40,7 @@ pub struct Chatex {
     pub profile: endpoint::Profile,
     pub coin: endpoint::Coin,
     pub exchange: endpoint::Exchange,
+    pub invoice: endpoint::Invoice,
 }
 
 impl Chatex {
@@ -47,11 +48,13 @@ impl Chatex {
         profile: endpoint::Profile,
         coin: endpoint::Coin,
         exchange: endpoint::Exchange,
+        invoice: endpoint::Invoice,
     ) -> Chatex {
         Chatex { 
             profile,
             coin,
             exchange,
+            invoice,
         }
     }
 }
