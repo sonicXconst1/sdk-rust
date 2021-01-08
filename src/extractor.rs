@@ -54,6 +54,11 @@ pub async fn extract_invoices(body: hyper::Body) -> Option<models::Invoices> {
         .await
 }
 
+pub async fn extract_invoice(body: hyper::Body) -> Option<models::Invoice> {
+    read_body::<models::Invoice>(body)
+        .await
+}
+
 async fn read_body<TResult>(body: hyper::body::Body) -> Option<TResult>
 where
     TResult: serde::de::DeserializeOwned,

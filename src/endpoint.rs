@@ -1,11 +1,11 @@
 use super::chatex;
 use super::coin;
 use super::models;
-use url;
+use iso8601;
 use iso_currency;
 use isocountry;
 use isolanguage_1;
-use iso8601;
+use url;
 
 pub struct Profile {
     auth: url::Url,
@@ -254,9 +254,7 @@ impl Exchange {
             .unwrap()
             .push(id)
             .push(Self::ACTIVATE);
-        create_post_request_with_url(
-            &access_context.access_token,
-            &url)
+        create_post_request_with_url(&access_context.access_token, &url)
     }
 
     pub fn deactivate_order_by_id(
@@ -269,9 +267,7 @@ impl Exchange {
             .unwrap()
             .push(id)
             .push(Self::DEACTIVATE);
-        create_post_request_with_url(
-            &access_context.access_token,
-            &url)
+        create_post_request_with_url(&access_context.access_token, &url)
     }
 
     pub fn create_trade_for_order(
@@ -281,10 +277,7 @@ impl Exchange {
         access_context: &chatex::AccessContext,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
-        url.path_segments_mut()
-            .unwrap()
-            .push(id)
-            .push(Self::TRADES);
+        url.path_segments_mut().unwrap().push(id).push(Self::TRADES);
         let trade = serde_json::to_vec(trade).unwrap();
         create_post_request_builder_with_url(&access_context.access_token, &url)
             .header("Content-Type", "application/json")
@@ -302,13 +295,10 @@ impl Invoice {
 
     pub fn new(base_context: &chatex::BaseContext) -> Invoice {
         let mut invoices = base_context.base_url.clone();
-        invoices.path_segments_mut()
-            .unwrap()
-            .push(Self::INVOICES);
-        Invoice {
-            invoices,
-        }
+        invoices.path_segments_mut().unwrap().push(Self::INVOICES);
+        Invoice { invoices }
     }
+
     pub fn get_invoices(
         &self,
         coins: Option<&[coin::Coin]>,
@@ -326,13 +316,11 @@ impl Invoice {
         let mut url = self.invoices.clone();
         if let Some(coins) = coins {
             let coins = Self::slice_to_string(coins);
-            url.query_pairs_mut()
-                .append_pair("coins", coins.as_ref());
+            url.query_pairs_mut().append_pair("coins", coins.as_ref());
         }
         if let Some(fiat) = fiat {
             let fiat = Self::slice_to_string(fiat);
-            url.query_pairs_mut()
-                .append_pair("fiat", fiat.as_ref());
+            url.query_pairs_mut().append_pair("fiat", fiat.as_ref());
         }
         if let Some(country_code) = country_code {
             let country_code = Self::slice_to_string(country_code);
@@ -363,14 +351,36 @@ impl Invoice {
             url.query_pairs_mut()
                 .append_pair("date_end", date_end.as_ref());
         }
-        create_get_request_with_url(
-            &access_context.access_token,
-            &url)
-
+        create_get_request_with_url(&access_context.access_token, &url)
     }
 
-    fn slice_to_string<T>(slice: &[T]) -> String 
-    where T: std::fmt::Display {
+    pub fn create_invoice(
+        &self,
+        invoice: models::CreateInvoice,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let url = self.invoices.clone();
+        let invoice = serde_json::to_vec(&invoice).unwrap();
+        create_post_request_builder_with_url(&access_context.access_token, &url)
+            .header("Content-Type", "application/json")
+            .body(hyper::Body::from(invoice))
+            .ok()
+    }
+
+    pub fn get_invoice_by_id(
+        &self,
+        id: String,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.invoices.clone();
+        url.path_segments_mut().unwrap().push(id.as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
+    }
+
+    fn slice_to_string<T>(slice: &[T]) -> String
+    where
+        T: std::fmt::Display,
+    {
         let mut result = String::with_capacity(slice.len() * 4);
         for item in slice.iter() {
             result.push_str(format!("{}", item).as_ref());
@@ -410,11 +420,7 @@ fn create_post_request_with_url(token: &str, url: &url::Url) -> Option<http::Req
         .ok()
 }
 
-fn add_offset_and_limit_parameters(
-    url: &mut url::Url,
-    offset: Option<u32>,
-    limit: Option<u32>,
-) {
+fn add_offset_and_limit_parameters(url: &mut url::Url, offset: Option<u32>, limit: Option<u32>) {
     let offset = if let Some(offset) = offset { offset } else { 0 };
     let limit = if let Some(limit) = limit { limit } else { 50 };
     url.query_pairs_mut()

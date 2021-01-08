@@ -126,6 +126,19 @@ pub struct Invoice {
     pub status: String,
 }
 
+#[derive(serde::Serialize, Debug)]
+pub struct CreateInvoice {
+    pub amount: String,
+    pub callback_url: String,
+    pub coin: String,
+    pub country_code: String,
+    pub data: String,
+    pub fiat: String,
+    pub lang_id: String,
+    pub payment_system_id: String,
+    pub redirect_url: String,
+}
+
 pub type PaymentSystemId = u32;
 
 #[derive(serde::Serialize, Debug)]
