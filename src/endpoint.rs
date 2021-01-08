@@ -394,6 +394,52 @@ pub struct PaymentSystem {
     estimate: url::Url,
 }
 
+impl PaymentSystem {
+    const PAYMENT_SYSTEMS: &'static str = "payment-systems";
+    const ESTIMATE: &'static str = "estimate";
+
+    pub fn new(base_context: &chatex::BaseContext) -> PaymentSystem {
+        let mut payment_systems = base_context.base_url.clone();
+        payment_systems
+            .path_segments_mut()
+            .unwrap()
+            .push(Self::PAYMENT_SYSTEMS);
+        let mut estimate = payment_systems.clone();
+        estimate.path_segments_mut().unwrap().push(Self::ESTIMATE);
+        PaymentSystem {
+            payment_systems,
+            estimate,
+        }
+    }
+
+    pub fn get_list_of_estimated_payment_systems(
+        &self,
+        estimate: models::Estimate,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let url = self.estimate.clone();
+        let estimate = serde_json::to_vec(&estimate).unwrap();
+        create_post_request_builder_with_url(
+            &access_context.access_token,
+            &url)
+            .header("Content-Type", "application/json")
+            .body(hyper::Body::from(estimate))
+            .ok()
+    }
+
+    pub fn get_payment_system_by_id(
+        &self,
+        id: models::PaymentSystemId,
+        access_context: &chatex::AccessContext,
+    ) -> Option<http::Request<hyper::Body>> {
+        let mut url = self.payment_systems.clone();
+        url.path_segments_mut()
+            .unwrap()
+            .push(id.to_string().as_ref());
+        create_get_request_with_url(&access_context.access_token, &url)
+    }
+}
+
 fn create_default_request_builder(token: &str) -> http::request::Builder {
     http::request::Builder::new()
         .header("Accept", "application/json")

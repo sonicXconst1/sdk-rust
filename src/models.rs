@@ -139,14 +139,49 @@ pub struct CreateInvoice {
     pub redirect_url: String,
 }
 
-pub type PaymentSystemId = u32;
-
 #[derive(serde::Serialize, Debug)]
 pub enum InvoiceStatus {
     Unassigned,
     Active,
     Completed,
     Canceled,
+}
+
+pub type PaymentSystemId = u32;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct PaymentSystem {
+    id: PaymentSystemId,
+    name: String
+}
+
+#[derive(serde::Serialize, Debug)]
+pub struct Estimate {
+    amount: String,
+    coin: String,
+}
+
+pub type FiatEstimations = Vec<FiatEstimation>;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct FiatEstimation {
+    pub estimations: PaymentSystemEstimations,
+    pub fiat: Fiat,
+}
+
+pub type PaymentSystemEstimations = Vec<PaymentSystemEstimation>;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct PaymentSystemEstimation {
+    pub estimated_fiat_amount: f64,
+    pub payment_system: PaymentSystem,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Fiat {
+    pub decimals: u32,
+    pub full_name: String,
+    pub name: String,
 }
 
 impl std::fmt::Display for InvoiceStatus {
