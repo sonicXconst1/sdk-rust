@@ -25,9 +25,11 @@ impl ApiContext {
     }
 }
 
+pub type AccessToken = String;
+
 pub struct AccessContext {
     pub base: BaseContext,
-    pub access_token: String,
+    pub access_token: AccessToken,
 }
 
 impl AccessContext {
@@ -41,6 +43,7 @@ pub struct Chatex {
     pub coin: endpoint::Coin,
     pub exchange: endpoint::Exchange,
     pub invoice: endpoint::Invoice,
+    pub payment_system: endpoint::PaymentSystem,
 }
 
 impl Chatex {
@@ -49,12 +52,14 @@ impl Chatex {
         coin: endpoint::Coin,
         exchange: endpoint::Exchange,
         invoice: endpoint::Invoice,
+        payment_system: endpoint::PaymentSystem,
     ) -> Chatex {
         Chatex { 
             profile,
             coin,
             exchange,
             invoice,
+            payment_system,
         }
     }
 }

@@ -38,18 +38,12 @@ impl Profile {
         create_post_request_with_url(&api_context.api_key, &self.auth)
     }
 
-    pub fn get_me(
-        &self,
-        access_context: &chatex::AccessContext,
-    ) -> Option<http::Request<hyper::Body>> {
-        create_get_request_with_url(&access_context.access_token, &self.me)
+    pub fn get_me(&self, access_token: &str) -> Option<http::Request<hyper::Body>> {
+        create_get_request_with_url(&access_token, &self.me)
     }
 
-    pub fn get_balance(
-        &self,
-        access_context: &chatex::AccessContext,
-    ) -> Option<http::Request<hyper::Body>> {
-        create_get_request_with_url(&access_context.access_token, &self.balance)
+    pub fn get_balance(&self, access_token: &str) -> Option<http::Request<hyper::Body>> {
+        create_get_request_with_url(&access_token, &self.balance)
     }
 }
 
@@ -64,24 +58,21 @@ impl Coin {
         Coin { coins }
     }
 
-    pub fn coins(
-        &self,
-        access_context: &chatex::AccessContext,
-    ) -> Option<http::Request<hyper::Body>> {
-        create_get_request_with_url(&access_context.access_token, &self.coins)
+    pub fn coins(&self, access_token: &str) -> Option<http::Request<hyper::Body>> {
+        create_get_request_with_url(&access_token, &self.coins)
     }
 
     pub fn coin(
         &self,
         coin: super::coin::Coin,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         // Bad solution. There should be way to implement in without allocations.
         // The simplest way is to use somehow 'static str.
         let coin: String = coin.into();
         let mut url = self.coins.clone();
         url.path_segments_mut().unwrap().push(coin.as_ref());
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 }
 
@@ -119,7 +110,7 @@ impl Exchange {
         pair: coin::CoinPair,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let pair = String::from(pair);
         let mut orders_url = self.orders.clone();
@@ -138,7 +129,7 @@ impl Exchange {
         orders_url
             .query_pairs_mut()
             .append_pair("limit", &limit.to_string());
-        create_get_request_with_url(&access_context.access_token, &orders_url)
+        create_get_request_with_url(&access_token, &orders_url)
     }
 
     pub fn post_order(
@@ -146,12 +137,12 @@ impl Exchange {
         pair: coin::CoinPair,
         amount: String,
         rate: String,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let pair = String::from(pair);
         let order_request = models::OrderRequest { pair, amount, rate };
         let order_request = serde_json::to_vec(&order_request).unwrap();
-        create_post_request_builder_with_url(&access_context.access_token, &self.orders)
+        create_post_request_builder_with_url(&access_token, &self.orders)
             .header("Content-Type", "application/json")
             .body(hyper::body::Body::from(order_request))
             .ok()
@@ -163,7 +154,7 @@ impl Exchange {
         status: Option<String>,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.my.clone();
         if let Some(pair) = pair {
@@ -174,7 +165,7 @@ impl Exchange {
             url.query_pairs_mut().append_pair("status", status.as_ref());
         }
         add_offset_and_limit_parameters(&mut url, offset, limit);
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     pub fn get_trades(
@@ -182,7 +173,7 @@ impl Exchange {
         order_id: Option<u32>,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.trades.clone();
         if let Some(order_id) = order_id {
@@ -190,39 +181,39 @@ impl Exchange {
                 .append_pair("order_id", order_id.to_string().as_ref());
         }
         add_offset_and_limit_parameters(&mut url, offset, limit);
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     pub fn get_trade_by_id(
         &self,
         id: &str,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.trades.clone();
         url.path_segments_mut().unwrap().push(id);
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     pub fn get_order_by_id(
         &self,
         id: &str,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     pub fn update_order_by_id(
         &self,
         id: &str,
         order: models::UpdateOrder,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
         let order = serde_json::to_vec(&order).unwrap();
-        create_default_request_builder(&access_context.access_token)
+        create_default_request_builder(&access_token)
             .method(hyper::Method::PUT)
             .uri(url.to_string())
             .header("Content-Type", "application/json")
@@ -233,11 +224,11 @@ impl Exchange {
     pub fn delete_order_by_id(
         &self,
         id: &str,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
-        create_default_request_builder(&access_context.access_token)
+        create_default_request_builder(&access_token)
             .method(hyper::Method::DELETE)
             .uri(url.to_string())
             .body(hyper::Body::empty())
@@ -247,39 +238,39 @@ impl Exchange {
     pub fn activate_order_by_id(
         &self,
         id: &str,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut()
             .unwrap()
             .push(id)
             .push(Self::ACTIVATE);
-        create_post_request_with_url(&access_context.access_token, &url)
+        create_post_request_with_url(&access_token, &url)
     }
 
     pub fn deactivate_order_by_id(
         &self,
         id: &str,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut()
             .unwrap()
             .push(id)
             .push(Self::DEACTIVATE);
-        create_post_request_with_url(&access_context.access_token, &url)
+        create_post_request_with_url(&access_token, &url)
     }
 
     pub fn create_trade_for_order(
         &self,
         id: &str,
         trade: &models::CreateTradeRequest,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id).push(Self::TRADES);
         let trade = serde_json::to_vec(trade).unwrap();
-        create_post_request_builder_with_url(&access_context.access_token, &url)
+        create_post_request_builder_with_url(&access_token, &url)
             .header("Content-Type", "application/json")
             .body(hyper::Body::from(trade))
             .ok()
@@ -311,7 +302,7 @@ impl Invoice {
         limit: Option<u32>,
         date_start: Option<iso8601::Date>,
         date_end: Option<iso8601::Date>,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.invoices.clone();
         if let Some(coins) = coins {
@@ -351,17 +342,17 @@ impl Invoice {
             url.query_pairs_mut()
                 .append_pair("date_end", date_end.as_ref());
         }
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     pub fn create_invoice(
         &self,
         invoice: models::CreateInvoice,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let url = self.invoices.clone();
         let invoice = serde_json::to_vec(&invoice).unwrap();
-        create_post_request_builder_with_url(&access_context.access_token, &url)
+        create_post_request_builder_with_url(&access_token, &url)
             .header("Content-Type", "application/json")
             .body(hyper::Body::from(invoice))
             .ok()
@@ -370,11 +361,11 @@ impl Invoice {
     pub fn get_invoice_by_id(
         &self,
         id: String,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.invoices.clone();
         url.path_segments_mut().unwrap().push(id.as_ref());
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 
     fn slice_to_string<T>(slice: &[T]) -> String
@@ -415,13 +406,11 @@ impl PaymentSystem {
     pub fn get_list_of_estimated_payment_systems(
         &self,
         estimate: models::Estimate,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let url = self.estimate.clone();
         let estimate = serde_json::to_vec(&estimate).unwrap();
-        create_post_request_builder_with_url(
-            &access_context.access_token,
-            &url)
+        create_post_request_builder_with_url(&access_token, &url)
             .header("Content-Type", "application/json")
             .body(hyper::Body::from(estimate))
             .ok()
@@ -430,13 +419,13 @@ impl PaymentSystem {
     pub fn get_payment_system_by_id(
         &self,
         id: models::PaymentSystemId,
-        access_context: &chatex::AccessContext,
+        access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.payment_systems.clone();
         url.path_segments_mut()
             .unwrap()
             .push(id.to_string().as_ref());
-        create_get_request_with_url(&access_context.access_token, &url)
+        create_get_request_with_url(&access_token, &url)
     }
 }
 
