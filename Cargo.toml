@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.*", features = ["derive"] }
 http = { version = "0.*" }
-hyper = { version = "0.*", features = ["full"]}
+hyper = { version = "0.*", features = ["http1", "http2"]}
 hyper-tls = { version = "0.*" }
 serde_json = { version = "1.*" }
 url = { version = "2.*" }
