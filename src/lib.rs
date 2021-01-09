@@ -43,6 +43,7 @@ pub struct ChatexClient<TConnector> {
     base: ClientBase<TConnector>,
     profile: endpoint::Profile,
     coin: endpoint::Coin,
+    exchange: endpoint::Exchange,
 }
 
 impl<TConnector> ChatexClient<TConnector>
@@ -62,12 +63,14 @@ where
         let api_context = chatex::ApiContext::new(base_context.clone(), secret);
         let profile = endpoint::Profile::new(&base_context);
         let coin = endpoint::Coin::new(&base_context);
+        let exchange = endpoint::Exchange::new(&base_context);
         let access_controller = AccessController::new(profile.clone());
         let base = ClientBase::new(client, api_context, access_controller);
         ChatexClient {
             base,
             profile,
             coin,
+            exchange,
         }
     }
 
@@ -77,6 +80,10 @@ where
 
     pub fn coin<'a: 'b, 'b>(&'a self) -> CoinClient<'b, TConnector> {
         CoinClient::new(&self.base, &self.coin)
+    }
+
+    pub fn exchange<'a: 'b, 'b>(&'a self) -> ExchangeClient<'b, TConnector> {
+        ExchangeClient::new(&self.base, &self.exchange)
     }
 }
 
@@ -223,6 +230,206 @@ where
             let response = self.base.client.request(request).await.ok()?;
             let body = response.into_body();
             extractor::extract_coin(body).await
+        } else {
+            None
+        }
+    }
+}
+
+pub struct ExchangeClient<'a, TConnector> {
+    base: &'a ClientBase<TConnector>,
+    exchange: &'a endpoint::Exchange,
+}
+
+impl<'a, TConnector> ExchangeClient<'a, TConnector>
+where
+    TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
+{
+    fn new(
+        base: &'a ClientBase<TConnector>,
+        exchange: &'a endpoint::Exchange,
+    ) -> ExchangeClient<'a, TConnector> {
+        ExchangeClient { base, exchange }
+    }
+
+    pub async fn get_all_orders(
+        &self,
+        pair: coin::CoinPair,
+        offset: Option<u32>,
+        limit: Option<u32>,
+    ) -> Option<models::Orders> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .get_orders(pair, offset, limit, &access_token)
+                .expect("Failed to build /orders request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_orders(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn create_order(
+        &self,
+        pair: coin::CoinPair,
+        amount: String,
+        rate: String,
+    ) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .post_order(pair, amount, rate, &access_token)
+                .expect("Failed to build /orders request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_my_orders(
+        &self,
+        pair: Option<coin::CoinPair>,
+        status: Option<String>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+    ) -> Option<models::Orders> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .get_my_orders(pair, status, offset, limit, &access_token)
+                .expect("Failed to build /orders/my request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_orders(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_trades(
+        &self,
+        order_id: Option<u32>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+    ) -> Option<models::Trades> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .get_trades(order_id, offset, limit, &access_token)
+                .expect("Failed to build /trades request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_trades(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_trade_by_id(&self, id: &str) -> Option<models::Trade> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .get_trade_by_id(id, &access_token)
+                .expect("Failed to build /trades/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_trade(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_order_by_id(&self, id: &str) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .get_order_by_id(id, &access_token)
+                .expect("Failed to build /orders/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn update_order_by_id(
+        &self,
+        id: &str,
+        order: models::UpdateOrder,
+    ) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .update_order_by_id(id, order, &access_token)
+                .expect("Failed to build /orders/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn delete_order_by_id(&self, id: &str) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .delete_order_by_id(id, &access_token)
+                .expect("Failed to build /orders/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn activate_order_by_id(&self, id: &str) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .activate_order_by_id(id, &access_token)
+                .expect("Failed to build /orders/id/activate request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn deactivate_order_by_id(&self, id: &str) -> Option<models::Order> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .deactivate_order_by_id(id, &access_token)
+                .expect("Failed to build /orders/id/deactivate request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_order(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn create_trade_for_order(
+        &self,
+        id: &str,
+        trade: &models::CreateTradeRequest,
+    ) -> Option<models::Trade> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .exchange
+                .create_trade_for_order(id, trade, &access_token)
+                .expect("Failed to build /orders/id/trades request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_trade(body).await
         } else {
             None
         }
