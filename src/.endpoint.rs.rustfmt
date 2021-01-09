@@ -7,7 +7,6 @@ use isocountry;
 use isolanguage_1;
 use url;
 
-#[derive(Clone, Debug)]
 pub struct Profile {
     auth: url::Url,
     me: url::Url,
@@ -39,10 +38,7 @@ impl Profile {
         create_post_request_with_url(&api_context.api_key, &self.auth)
     }
 
-    pub fn get_me(
-        &self,
-        access_token: &chatex::AccessToken,
-    ) -> Option<http::Request<hyper::Body>> {
+    pub fn get_me(&self, access_token: &chatex::AccessToken) -> Option<http::Request<hyper::Body>> {
         create_get_request_with_url(&access_token, &self.me)
     }
 
@@ -51,7 +47,6 @@ impl Profile {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct Coin {
     coins: url::Url,
 }
@@ -81,7 +76,6 @@ impl Coin {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct Exchange {
     orders: url::Url,
     my: url::Url,
@@ -283,7 +277,6 @@ impl Exchange {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct Invoice {
     invoices: url::Url,
 }
@@ -387,7 +380,6 @@ impl Invoice {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct PaymentSystem {
     payment_systems: url::Url,
     estimate: url::Url,
@@ -443,10 +435,7 @@ fn create_default_request_builder(token: &str) -> http::request::Builder {
         .header("Authorization", format!("Bearer {}", &token))
 }
 
-fn create_get_request_with_url(
-    token: &str,
-    url: &url::Url,
-) -> Option<http::Request<hyper::Body>> {
+fn create_get_request_with_url(token: &str, url: &url::Url) -> Option<http::Request<hyper::Body>> {
     create_default_request_builder(token)
         .method(hyper::Method::GET)
         .uri(url.to_string())
@@ -454,29 +443,19 @@ fn create_get_request_with_url(
         .ok()
 }
 
-fn create_post_request_builder_with_url(
-    token: &str,
-    url: &url::Url,
-) -> http::request::Builder {
+fn create_post_request_builder_with_url(token: &str, url: &url::Url) -> http::request::Builder {
     create_default_request_builder(token)
         .method(hyper::Method::POST)
         .uri(url.to_string())
 }
 
-fn create_post_request_with_url(
-    token: &str,
-    url: &url::Url,
-) -> Option<http::Request<hyper::Body>> {
+fn create_post_request_with_url(token: &str, url: &url::Url) -> Option<http::Request<hyper::Body>> {
     create_post_request_builder_with_url(token, url)
         .body(hyper::Body::empty())
         .ok()
 }
 
-fn add_offset_and_limit_parameters(
-    url: &mut url::Url,
-    offset: Option<u32>,
-    limit: Option<u32>,
-) {
+fn add_offset_and_limit_parameters(url: &mut url::Url, offset: Option<u32>, limit: Option<u32>) {
     let offset = if let Some(offset) = offset { offset } else { 0 };
     let limit = if let Some(limit) = limit { limit } else { 50 };
     url.query_pairs_mut()

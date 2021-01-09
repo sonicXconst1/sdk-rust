@@ -1,14 +1,14 @@
 #[derive(serde::Deserialize, Debug)]
 pub struct AccessToken {
     pub access_token: String,
-    pub expires_at: i32
+    pub expires_at: i32,
 }
 
 #[derive(serde::Deserialize, Debug)]
 pub struct BasicInfo {
     pub id: i64,
     pub merchant_info: Option<MerchantInfo>,
-    pub profile: Profile
+    pub profile: Profile,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -40,7 +40,7 @@ pub struct AML5Limits {
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Verification {
-    pub current_level: String
+    pub current_level: String,
 }
 
 pub type Balance = Vec<Currency>;
@@ -58,7 +58,7 @@ pub type Coins = Vec<Coin>;
 pub struct Coin {
     pub decimals: u32,
     pub full_name: String,
-    pub name: String
+    pub name: String,
 }
 
 pub type Orders = Vec<Order>;
@@ -152,7 +152,7 @@ pub type PaymentSystemId = u32;
 #[derive(serde::Deserialize, Debug)]
 pub struct PaymentSystem {
     id: PaymentSystemId,
-    name: String
+    name: String,
 }
 
 #[derive(serde::Serialize, Debug)]
@@ -185,15 +185,12 @@ pub struct Fiat {
 }
 
 impl std::fmt::Display for InvoiceStatus {
-    fn fmt(
-        &self,
-        formatter: &mut std::fmt::Formatter,
-    ) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         match self {
             InvoiceStatus::Unassigned => formatter.write_str("UNASSIGNED"),
             InvoiceStatus::Active => formatter.write_str("ACTIVE"),
             InvoiceStatus::Completed => formatter.write_str("COMPLETED"),
-            InvoiceStatus::Canceled => formatter.write_str("CANCELED")
+            InvoiceStatus::Canceled => formatter.write_str("CANCELED"),
         }
     }
 }
