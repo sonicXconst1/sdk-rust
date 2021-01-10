@@ -44,6 +44,8 @@ pub struct ChatexClient<TConnector> {
     profile: endpoint::Profile,
     coin: endpoint::Coin,
     exchange: endpoint::Exchange,
+    invoice: endpoint::Invoice,
+    payment_system: endpoint::PaymentSystem,
 }
 
 impl<TConnector> ChatexClient<TConnector>
@@ -64,6 +66,8 @@ where
         let profile = endpoint::Profile::new(&base_context);
         let coin = endpoint::Coin::new(&base_context);
         let exchange = endpoint::Exchange::new(&base_context);
+        let invoice = endpoint::Invoice::new(&base_context);
+        let payment_system = endpoint::PaymentSystem::new(&base_context);
         let access_controller = AccessController::new(profile.clone());
         let base = ClientBase::new(client, api_context, access_controller);
         ChatexClient {
@@ -71,6 +75,8 @@ where
             profile,
             coin,
             exchange,
+            invoice,
+            payment_system,
         }
     }
 
@@ -84,6 +90,14 @@ where
 
     pub fn exchange<'a: 'b, 'b>(&'a self) -> ExchangeClient<'b, TConnector> {
         ExchangeClient::new(&self.base, &self.exchange)
+    }
+
+    pub fn invoice<'a: 'b, 'b>(&'a self) -> InvoiceClient<'b, TConnector> {
+        InvoiceClient::new(&self.base, &self.invoice)
+    }
+
+    pub fn payment_system<'a: 'b, 'b>(&'a self) -> PaymentSystemClient<'b, TConnector> {
+        PaymentSystemClient::new(&self.base, &self.payment_system)
     }
 }
 
@@ -430,6 +444,146 @@ where
             let response = self.base.client.request(request).await.ok()?;
             let body = response.into_body();
             extractor::extract_trade(body).await
+        } else {
+            None
+        }
+    }
+}
+
+pub struct InvoiceClient<'a, TConnector> {
+    base: &'a ClientBase<TConnector>,
+    invoice: &'a endpoint::Invoice,
+}
+
+impl<'a, TConnector> InvoiceClient<'a, TConnector>
+where
+    TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
+{
+    fn new(
+        base: &'a ClientBase<TConnector>,
+        invoice: &'a endpoint::Invoice,
+    ) -> InvoiceClient<'a, TConnector> {
+        InvoiceClient { base, invoice }
+    }
+
+    pub async fn get_invoices(
+        &self,
+        coins: Option<&[coin::Coin]>,
+        fiat: Option<&[iso_currency::Currency]>,
+        country_code: Option<&[isocountry::CountryCode]>,
+        payment_system_id: Option<&[models::PaymentSystemId]>,
+        lang_id: Option<&[isolanguage_1::LanguageCode]>,
+        status: Option<&[models::InvoiceStatus]>,
+        offset: Option<u32>,
+        limit: Option<u32>,
+        date_start: Option<iso8601::Date>,
+        date_end: Option<iso8601::Date>,
+    ) -> Option<models::Invoices> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .invoice
+                .get_invoices(
+                    coins,
+                    fiat,
+                    country_code,
+                    payment_system_id,
+                    lang_id,
+                    status,
+                    offset,
+                    limit,
+                    date_start,
+                    date_end,
+                    &access_token,
+                )
+                .expect("Failed to build /invoices request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_invoices(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn create_invoice(
+        &self,
+        invoice: models::CreateInvoice,
+    ) -> Option<models::Invoices> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .invoice
+                .create_invoice(invoice, &access_token)
+                .expect("Failed to build /invoices request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_invoices(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_invoice_by_id(&self, id: String) -> Option<models::Invoice> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .invoice
+                .get_invoice_by_id(id, &access_token)
+                .expect("Failed to build /invoices/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_invoice(body).await
+        } else {
+            None
+        }
+    }
+}
+
+pub struct PaymentSystemClient<'a, TConnector> {
+    base: &'a ClientBase<TConnector>,
+    payment_system: &'a endpoint::PaymentSystem,
+}
+
+impl<'a, TConnector> PaymentSystemClient<'a, TConnector>
+where
+    TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
+{
+    fn new(
+        base: &'a ClientBase<TConnector>,
+        payment_system: &'a endpoint::PaymentSystem,
+    ) -> PaymentSystemClient<'a, TConnector> {
+        PaymentSystemClient {
+            base,
+            payment_system,
+        }
+    }
+
+    pub async fn get_list_of_estimated_payment_systems(
+        &self,
+        estimate: models::Estimate,
+    ) -> Option<models::FiatEstimations> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .payment_system
+                .get_list_of_estimated_payment_systems(estimate, &access_token)
+                .expect("Failed to build /payment-system/estimate request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_fiat_estimations(body).await
+        } else {
+            None
+        }
+    }
+
+    pub async fn get_payment_system_by_id(
+        &self,
+        id: models::PaymentSystemId,
+    ) -> Option<models::PaymentSystem> {
+        if let Some(access_token) = self.base.get_access_token().await {
+            let request = self
+                .payment_system
+                .get_payment_system_by_id(id, &access_token)
+                .expect("Failed to build /payment-system/id request!");
+            let response = self.base.client.request(request).await.ok()?;
+            let body = response.into_body();
+            extractor::extract_payment_system(body).await
         } else {
             None
         }
