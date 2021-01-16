@@ -126,7 +126,7 @@ impl AccessController {
             let auth_request = self
                 .profile
                 .get_access_token(api_context)
-                .expect("Failed to craete access_token request!");
+                .expect("Failed to create access_token request!");
             let auth_response = client.request(auth_request).await.unwrap();
             if auth_response.status().is_success() {
                 let auth_body = auth_response.into_body();
@@ -166,7 +166,7 @@ where
         let auth_request = self
             .profile
             .get_access_token(&self.base.api_context)
-            .expect("Failed to craete access_token request!");
+            .expect("Failed to create access_token request!");
         let auth_response = self.base.client.request(auth_request).await.unwrap();
         if auth_response.status().is_success() {
             let auth_body = auth_response.into_body();
