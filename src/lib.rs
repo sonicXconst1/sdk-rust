@@ -285,7 +285,7 @@ where
         }
     }
 
-    pub async fn create_order(
+    pub async fn create_order_raw(
         &self,
         pair: coin::CoinPair,
         amount: String,
@@ -302,6 +302,16 @@ where
         } else {
             None
         }
+    }
+
+    pub async fn create_order(
+        &self,
+        pair: coin::CoinPair,
+        amount: f64,
+        rate: f64,
+    ) -> Option<models::Order> {
+        self.create_order_raw(pair, amount.to_string(), rate.to_string())
+            .await
     }
 
     pub async fn get_my_orders(

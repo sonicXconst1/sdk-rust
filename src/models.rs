@@ -1,23 +1,25 @@
-#[derive(serde::Deserialize, Debug)]
+use super::coin;
+
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct AccessToken {
     pub access_token: String,
-    pub expires_at: i32,
+    pub expires_at: u32,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct BasicInfo {
     pub id: i64,
     pub merchant_info: Option<MerchantInfo>,
     pub profile: Profile,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct MerchantInfo {
     pub name: String,
     pub usd_amount_max_limit: String,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Profile {
     pub country_code: String,
     pub email: Option<String>,
@@ -29,7 +31,7 @@ pub struct Profile {
     pub verification: Verification,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct AML5Limits {
     pub current_turnover: String,
     pub current_withdraw: String,
@@ -38,14 +40,14 @@ pub struct AML5Limits {
     pub withdraw_limit_daily: String,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Verification {
     pub current_level: String,
 }
 
 pub type Balance = Vec<Currency>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Currency {
     pub amount: String,
     pub coin: String,
@@ -54,7 +56,7 @@ pub struct Currency {
 
 pub type Coins = Vec<Coin>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Coin {
     pub decimals: u32,
     pub full_name: String,
@@ -63,7 +65,7 @@ pub struct Coin {
 
 pub type Orders = Vec<Order>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Order {
     pub amount: String,
     pub created_at: String,
@@ -76,14 +78,24 @@ pub struct Order {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct OrderRequest {
     pub amount: String,
     pub pair: String,
     pub rate: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+impl OrderRequest {
+    pub fn new(pair: coin::CoinPair, amount: f64, rate: f64) -> OrderRequest {
+        OrderRequest {
+            pair: pair.into(),
+            amount: amount.to_string(),
+            rate: rate.to_string(),
+        }
+    }
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct UpdateOrder {
     pub amount: String,
     pub rate: String,
@@ -91,7 +103,7 @@ pub struct UpdateOrder {
 
 pub type Trades = Vec<Trade>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Trade {
     amount: String,
     created_at: String,
@@ -102,7 +114,7 @@ pub struct Trade {
     updated_at: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct CreateTradeRequest {
     pub amount: String,
     pub rate: String,
@@ -110,7 +122,7 @@ pub struct CreateTradeRequest {
 
 pub type Invoices = Vec<Invoice>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Invoice {
     pub amount: f64,
     pub callback_url: String,
@@ -126,7 +138,7 @@ pub struct Invoice {
     pub status: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct CreateInvoice {
     pub amount: String,
     pub callback_url: String,
@@ -139,7 +151,7 @@ pub struct CreateInvoice {
     pub redirect_url: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub enum InvoiceStatus {
     Unassigned,
     Active,
@@ -149,13 +161,13 @@ pub enum InvoiceStatus {
 
 pub type PaymentSystemId = u32;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct PaymentSystem {
     id: PaymentSystemId,
     name: String,
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct Estimate {
     amount: String,
     coin: String,
@@ -163,7 +175,7 @@ pub struct Estimate {
 
 pub type FiatEstimations = Vec<FiatEstimation>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct FiatEstimation {
     pub estimations: PaymentSystemEstimations,
     pub fiat: Fiat,
@@ -171,13 +183,13 @@ pub struct FiatEstimation {
 
 pub type PaymentSystemEstimations = Vec<PaymentSystemEstimation>;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct PaymentSystemEstimation {
     pub estimated_fiat_amount: f64,
     pub payment_system: PaymentSystem,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Clone, Debug)]
 pub struct Fiat {
     pub decimals: u32,
     pub full_name: String,

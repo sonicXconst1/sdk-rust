@@ -70,6 +70,19 @@ impl CoinPair {
             right,
         }
     }
+
+    pub fn reversed(&self) -> CoinPair {
+        CoinPair::new(self.right.clone(), self.left.clone())
+    }
+}
+
+impl From<&CoinPair> for String {
+    fn from(pair: &CoinPair) -> String {
+        format!(
+            "{}/{}",
+            String::from(pair.left.clone()),
+            String::from(pair.right.clone()))
+    }
 }
 
 impl From<CoinPair> for String {
