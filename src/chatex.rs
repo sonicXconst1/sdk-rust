@@ -60,3 +60,34 @@ impl AccessContext {
         !self.expired()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn create_access_context(time: chrono::DateTime<chrono::Utc>) -> AccessContext {
+        let blank_url = url::Url::parse("http://localhost:8000").unwrap(); 
+        let base_context = BaseContext::new(blank_url);
+        AccessContext::new(
+            base_context,
+            models::AccessToken {
+                access_token: String::new(),
+                expires_at: time.timestamp(),
+            })
+    }
+
+    #[test]
+    fn test_expired() {
+        let access_context = create_access_context(chrono::Utc::now());
+        assert!(access_context.expired(), "AccessContext must be expired!");
+    }
+
+    #[test]
+    fn test_not_expired() {
+        let valid_time = chrono::Utc::now()
+            .checked_add_signed(chrono::Duration::seconds(AccessContext::TIME_EXPIRATION_TOLERANCE + 1))
+            .expect("Failed to add TIME_EXPIRATION_TOLERANCE");
+        let access_context = create_access_context(valid_time);
+        assert!(access_context.not_expired(), "AccessContext must not be expired!");
+    }
+}
