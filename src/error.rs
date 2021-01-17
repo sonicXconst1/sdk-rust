@@ -70,12 +70,20 @@ impl Error {
         use super::extractor;
         match status_code {
             StatusCode::BAD_REQUEST => Error::BadRequest,
-            StatusCode::UNAUTHORIZED |
-            StatusCode::FORBIDDEN |
-            StatusCode::NOT_FOUND |
-            StatusCode::UNPROCESSABLE_ENTITY |
+            StatusCode::UNAUTHORIZED => {
+                Error::Unauthorized
+            },
+            StatusCode::FORBIDDEN => {
+                Error::PermissionDeniedError
+            },
+            StatusCode::NOT_FOUND => {
+                Error::NotFoundError
+            },
+            StatusCode::UNPROCESSABLE_ENTITY => {
+                Error::UnprocessableEntityError
+            },
             StatusCode::TOO_MANY_REQUESTS => {
-                extractor::extract_error(body)
+                extractor::read_body::<Error>(body)
                     .await
                     .map_or(Error::InternalServerError, |error| error)
             },
@@ -122,17 +130,36 @@ mod test {
 
     #[test]
     fn to_error() {
+        fn create_body(body_content: &'static str) -> hyper::Body {
+            let (mut sender, body) = hyper::Body::channel();
+            tokio_test::block_on(
+                sender.send_data(hyper::body::Bytes::from(body_content)))
+                .expect("Failed to send data");
+            body
+        }
         let empty_body = "{}";
-        let (mut sender, body) = hyper::Body::channel();
-        tokio_test::block_on(
-            sender.send_data(hyper::body::Bytes::from(empty_body)))
-            .expect("Failed to send data");
+        let body = create_body(empty_body);
         let status_code = StatusCode::BAD_REQUEST;
         let error = tokio_test::block_on(Error::to_error(status_code, body));
-        println!("{:?}", error);
         match error {
             Error::BadRequest => assert!(true),
-            _ => assert!(false, "Failed to get error code from empty enum!")
+            _ => assert!(false, "Failed to get error code from empty enum!"),
+        }
+        let body = create_body(empty_body);
+        let status_code = StatusCode::FORBIDDEN;
+        let error = tokio_test::block_on(Error::to_error(status_code, body));
+        match error {
+            Error::PermissionDeniedError => assert!(true),
+            _ => assert!(false, "Failed to get error code from empty enum!"),
+        }
+        let body = create_body(r#"{ "retryAfter": 2020 }"#);
+        let status_code = StatusCode::TOO_MANY_REQUESTS;
+        let error = tokio_test::block_on(Error::to_error(status_code, body));
+        match error {
+            Error::RateLimitedError { retry_after } => {
+                assert_eq!(retry_after, 2020);
+            },
+            _ => assert!(false, "Failed to get error code from empty enum!"),
         }
     }
 }
