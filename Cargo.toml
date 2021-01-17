@@ -23,3 +23,6 @@ iso_currency = { version = "0.4.*" }
 isolanguage-1 = { version = "0.2.*", features = ["serde"] }
 chrono = { version = "0.4.*" }
 log = { version = "0.4.*" }
+
+[dev-dependencies]
+tokio-test = { version = "0.4.*" }

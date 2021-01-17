@@ -1,4 +1,5 @@
 use super::models;
+use super::error;
 use hyper;
 use serde;
 use serde_json;
@@ -55,6 +56,12 @@ pub async fn extract_fiat_estimations(
     body: hyper::Body,
 ) -> Option<models::FiatEstimations> {
     read_body::<models::FiatEstimations>(body).await
+}
+
+pub async fn extract_error(
+    body: hyper::Body
+) -> Option<error::Error> {
+    read_body::<error::Error>(body).await
 }
 
 async fn read_body<TResult>(body: hyper::body::Body) -> Option<TResult>

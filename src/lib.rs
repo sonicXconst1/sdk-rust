@@ -9,6 +9,7 @@ pub mod coin;
 pub mod endpoint;
 pub mod extractor;
 pub mod models;
+pub mod error;
 
 struct ClientBase<TConnector> {
     client: hyper::Client<TConnector>,
