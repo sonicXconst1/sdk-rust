@@ -47,9 +47,7 @@ pub async fn extract_invoice(body: hyper::Body) -> Option<models::Invoice> {
     read_body::<models::Invoice>(body).await
 }
 
-pub async fn extract_payment_system(
-    body: hyper::Body
-) -> Option<models::PaymentSystem> {
+pub async fn extract_payment_system(body: hyper::Body) -> Option<models::PaymentSystem> {
     read_body::<models::PaymentSystem>(body).await
 }
 

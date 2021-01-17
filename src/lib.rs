@@ -4,7 +4,7 @@ extern crate isocountry;
 extern crate isolanguage_1;
 extern crate log;
 extern crate url;
-pub mod chatex;
+pub mod context;
 pub mod coin;
 pub mod endpoint;
 pub mod extractor;
@@ -12,7 +12,7 @@ pub mod models;
 
 struct ClientBase<TConnector> {
     client: hyper::Client<TConnector>,
-    api_context: chatex::ApiContext,
+    api_context: context::ApiContext,
     access_controller: AccessController,
 }
 
@@ -22,7 +22,7 @@ where
 {
     pub fn new(
         client: hyper::Client<TConnector>,
-        api_context: chatex::ApiContext,
+        api_context: context::ApiContext,
         access_controller: AccessController,
     ) -> ClientBase<TConnector> {
         ClientBase {
@@ -32,7 +32,7 @@ where
         }
     }
 
-    async fn get_access_token(&self) -> Option<chatex::AccessToken> {
+    async fn get_access_token(&self) -> Option<context::AccessToken> {
         self.access_controller
             .get_access_token(&self.api_context, &self.client)
             .await
@@ -61,8 +61,8 @@ where
         TConnector: hyper::client::connect::Connect + Clone + Send + Sync + 'static,
     {
         let client = hyper::Client::builder().build::<TConnector, hyper::Body>(connector);
-        let base_context = chatex::BaseContext::new(base_url);
-        let api_context = chatex::ApiContext::new(base_context.clone(), secret);
+        let base_context = context::BaseContext::new(base_url);
+        let api_context = context::ApiContext::new(base_context.clone(), secret);
         let profile = endpoint::Profile::new(&base_context);
         let coin = endpoint::Coin::new(&base_context);
         let exchange = endpoint::Exchange::new(&base_context);
@@ -102,7 +102,7 @@ where
 }
 
 struct AccessController {
-    access_context: std::cell::RefCell<Option<chatex::AccessContext>>,
+    access_context: std::cell::RefCell<Option<context::AccessContext>>,
     profile: endpoint::Profile,
 }
 
@@ -116,7 +116,7 @@ impl AccessController {
 
     pub async fn get_access_token<TConnector>(
         &self,
-        api_context: &chatex::ApiContext,
+        api_context: &context::ApiContext,
         client: &hyper::Client<TConnector>,
     ) -> Option<String>
     where
@@ -135,7 +135,7 @@ impl AccessController {
                 let access_token = extractor::extract_access_token(auth_body)
                     .await
                     .expect("Failed to read the body of access token!");
-                self.access_context.replace(Some(chatex::AccessContext::new(
+                self.access_context.replace(Some(context::AccessContext::new(
                     api_context.base.clone(),
                     access_token,
                 )));

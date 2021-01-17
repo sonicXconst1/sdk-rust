@@ -1,5 +1,5 @@
-use super::chatex;
 use super::coin;
+use super::context;
 use super::models;
 use chrono;
 use iso_currency;
@@ -15,7 +15,7 @@ pub struct Profile {
 }
 
 impl Profile {
-    pub fn new(base_context: &chatex::BaseContext) -> Profile {
+    pub fn new(base_context: &context::BaseContext) -> Profile {
         let mut auth = base_context.base_url.clone();
         auth.path_segments_mut()
             .unwrap()
@@ -34,14 +34,14 @@ impl Profile {
 
     pub fn get_access_token(
         &self,
-        api_context: &chatex::ApiContext,
+        api_context: &context::ApiContext,
     ) -> Option<http::Request<hyper::Body>> {
         create_post_request_with_url(&api_context.api_key, &self.auth)
     }
 
     pub fn get_me(
         &self,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         create_get_request_with_url(&access_token, &self.me)
     }
@@ -57,7 +57,7 @@ pub struct Coin {
 }
 
 impl Coin {
-    pub fn new(base_context: &chatex::BaseContext) -> Coin {
+    pub fn new(base_context: &context::BaseContext) -> Coin {
         let mut coins = base_context.base_url.clone();
         coins.path_segments_mut().unwrap().push("coins");
         Coin { coins }
@@ -70,7 +70,7 @@ impl Coin {
     pub fn coin(
         &self,
         coin: super::coin::Coin,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         // Bad solution. There should be way to implement in without allocations.
         // The simplest way is to use somehow 'static str.
@@ -96,7 +96,7 @@ impl Exchange {
     const ACTIVATE: &'static str = "activate";
     const DEACTIVATE: &'static str = "deactivate";
 
-    pub fn new(base_context: &chatex::BaseContext) -> Exchange {
+    pub fn new(base_context: &context::BaseContext) -> Exchange {
         let mut exchange_url = base_context.base_url.clone();
         exchange_url
             .path_segments_mut()
@@ -116,7 +116,7 @@ impl Exchange {
         pair: coin::CoinPair,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let pair = String::from(pair);
         let mut orders_url = self.orders.clone();
@@ -143,7 +143,7 @@ impl Exchange {
         pair: coin::CoinPair,
         amount: String,
         rate: String,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let pair = String::from(pair);
         let order_request = models::OrderRequest { pair, amount, rate };
@@ -160,7 +160,7 @@ impl Exchange {
         status: Option<String>,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.my.clone();
         if let Some(pair) = pair {
@@ -179,7 +179,7 @@ impl Exchange {
         order_id: Option<u32>,
         offset: Option<u32>,
         limit: Option<u32>,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.trades.clone();
         if let Some(order_id) = order_id {
@@ -193,7 +193,7 @@ impl Exchange {
     pub fn get_trade_by_id(
         &self,
         id: &str,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.trades.clone();
         url.path_segments_mut().unwrap().push(id);
@@ -203,7 +203,7 @@ impl Exchange {
     pub fn get_order_by_id(
         &self,
         id: &str,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
@@ -214,7 +214,7 @@ impl Exchange {
         &self,
         id: &str,
         order: models::UpdateOrder,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
@@ -230,7 +230,7 @@ impl Exchange {
     pub fn delete_order_by_id(
         &self,
         id: &str,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id);
@@ -244,7 +244,7 @@ impl Exchange {
     pub fn activate_order_by_id(
         &self,
         id: &str,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut()
@@ -257,7 +257,7 @@ impl Exchange {
     pub fn deactivate_order_by_id(
         &self,
         id: &str,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut()
@@ -271,7 +271,7 @@ impl Exchange {
         &self,
         id: &str,
         trade: &models::CreateTradeRequest,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id).push(Self::TRADES);
@@ -291,7 +291,7 @@ pub struct Invoice {
 impl Invoice {
     const INVOICES: &'static str = "invoices";
 
-    pub fn new(base_context: &chatex::BaseContext) -> Invoice {
+    pub fn new(base_context: &context::BaseContext) -> Invoice {
         let mut invoices = base_context.base_url.clone();
         invoices.path_segments_mut().unwrap().push(Self::INVOICES);
         Invoice { invoices }
@@ -309,7 +309,7 @@ impl Invoice {
         limit: Option<u32>,
         date_start: Option<chrono::DateTime<chrono::Utc>>,
         date_end: Option<chrono::DateTime<chrono::Utc>>,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.invoices.clone();
         if let Some(coins) = coins {
@@ -355,7 +355,7 @@ impl Invoice {
     pub fn create_invoice(
         &self,
         invoice: models::CreateInvoice,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let url = self.invoices.clone();
         let invoice = serde_json::to_vec(&invoice).unwrap();
@@ -368,7 +368,7 @@ impl Invoice {
     pub fn get_invoice_by_id(
         &self,
         id: String,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.invoices.clone();
         url.path_segments_mut().unwrap().push(id.as_ref());
@@ -397,7 +397,7 @@ impl PaymentSystem {
     const PAYMENT_SYSTEMS: &'static str = "payment-systems";
     const ESTIMATE: &'static str = "estimate";
 
-    pub fn new(base_context: &chatex::BaseContext) -> PaymentSystem {
+    pub fn new(base_context: &context::BaseContext) -> PaymentSystem {
         let mut payment_systems = base_context.base_url.clone();
         payment_systems
             .path_segments_mut()
@@ -414,7 +414,7 @@ impl PaymentSystem {
     pub fn get_list_of_estimated_payment_systems(
         &self,
         estimate: models::Estimate,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let url = self.estimate.clone();
         let estimate = serde_json::to_vec(&estimate).unwrap();
@@ -427,7 +427,7 @@ impl PaymentSystem {
     pub fn get_payment_system_by_id(
         &self,
         id: models::PaymentSystemId,
-        access_token: &chatex::AccessToken,
+        access_token: &context::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.payment_systems.clone();
         url.path_segments_mut()
