@@ -81,23 +81,23 @@ where
         }
     }
 
-    pub fn profile<'a: 'b, 'b>(&'a self) -> ProfileClient<'b, TConnector> {
+    pub fn profile<'a>(&'a self) -> ProfileClient<'a, TConnector> {
         ProfileClient::new(&self.base, &self.profile)
     }
 
-    pub fn coin<'a: 'b, 'b>(&'a self) -> CoinClient<'b, TConnector> {
+    pub fn coin<'a>(&'a self) -> CoinClient<'a, TConnector> {
         CoinClient::new(&self.base, &self.coin)
     }
 
-    pub fn exchange<'a: 'b, 'b>(&'a self) -> ExchangeClient<'b, TConnector> {
+    pub fn exchange<'a>(&'a self) -> ExchangeClient<'a, TConnector> {
         ExchangeClient::new(&self.base, &self.exchange)
     }
 
-    pub fn invoice<'a: 'b, 'b>(&'a self) -> InvoiceClient<'b, TConnector> {
+    pub fn invoice<'a>(&'a self) -> InvoiceClient<'a, TConnector> {
         InvoiceClient::new(&self.base, &self.invoice)
     }
 
-    pub fn payment_system<'a: 'b, 'b>(&'a self) -> PaymentSystemClient<'b, TConnector> {
+    pub fn payment_system<'a>(&'a self) -> PaymentSystemClient<'a, TConnector> {
         PaymentSystemClient::new(&self.base, &self.payment_system)
     }
 }
