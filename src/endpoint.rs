@@ -1,7 +1,7 @@
 use super::chatex;
 use super::coin;
 use super::models;
-use iso8601;
+use chrono;
 use iso_currency;
 use isocountry;
 use isolanguage_1;
@@ -307,8 +307,8 @@ impl Invoice {
         status: Option<&[models::InvoiceStatus]>,
         offset: Option<u32>,
         limit: Option<u32>,
-        date_start: Option<iso8601::Date>,
-        date_end: Option<iso8601::Date>,
+        date_start: Option<chrono::DateTime<chrono::Utc>>,
+        date_end: Option<chrono::DateTime<chrono::Utc>>,
         access_token: &chatex::AccessToken,
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.invoices.clone();

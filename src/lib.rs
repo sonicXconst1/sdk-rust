@@ -122,7 +122,9 @@ impl AccessController {
     where
         TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
     {
-        if self.access_context.borrow().is_none() {
+        if self.access_context.borrow().is_none() 
+            || self.access_context.borrow().as_ref().unwrap().expired() {
+            log::info!("Requesting new access token!");
             let auth_request = self
                 .profile
                 .get_access_token(api_context)
@@ -135,13 +137,13 @@ impl AccessController {
                     .expect("Failed to read the body of access token!");
                 self.access_context.replace(Some(chatex::AccessContext::new(
                     api_context.base.clone(),
-                    access_token.access_token,
+                    access_token,
                 )));
             }
         }
         self.access_context.borrow().as_ref().map_or_else(
             || None,
-            |access_context| Some(access_context.access_token.clone()),
+            |access_context| Some(access_context.access_token.access_token.clone()),
         )
     }
 }
@@ -486,8 +488,8 @@ where
         status: Option<&[models::InvoiceStatus]>,
         offset: Option<u32>,
         limit: Option<u32>,
-        date_start: Option<iso8601::Date>,
-        date_end: Option<iso8601::Date>,
+        date_start: Option<chrono::DateTime<chrono::Utc>>,
+        date_end: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Option<models::Invoices> {
         if let Some(access_token) = self.base.get_access_token().await {
             let request = self

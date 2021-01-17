@@ -3,7 +3,7 @@ use super::coin;
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct AccessToken {
     pub access_token: String,
-    pub expires_at: u32,
+    pub expires_at: i64,
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]
