@@ -81,23 +81,23 @@ where
         }
     }
 
-    pub fn profile<'a>(&'a self) -> ProfileClient<'a, TConnector> {
+    pub fn profile(&self) -> ProfileClient<'_, TConnector> {
         ProfileClient::new(&self.base, &self.profile)
     }
 
-    pub fn coin<'a>(&'a self) -> CoinClient<'a, TConnector> {
+    pub fn coin(&self) -> CoinClient<'_, TConnector> {
         CoinClient::new(&self.base, &self.coin)
     }
 
-    pub fn exchange<'a>(&'a self) -> ExchangeClient<'a, TConnector> {
+    pub fn exchange(&self) -> ExchangeClient<'_, TConnector> {
         ExchangeClient::new(&self.base, &self.exchange)
     }
 
-    pub fn invoice<'a>(&'a self) -> InvoiceClient<'a, TConnector> {
+    pub fn invoice(&self) -> InvoiceClient<'_, TConnector> {
         InvoiceClient::new(&self.base, &self.invoice)
     }
 
-    pub fn payment_system<'a>(&'a self) -> PaymentSystemClient<'a, TConnector> {
+    pub fn payment_system(&self) -> PaymentSystemClient<'_, TConnector> {
         PaymentSystemClient::new(&self.base, &self.payment_system)
     }
 }
@@ -300,6 +300,7 @@ where
                 .post_order(pair, amount, rate, &access_token)
                 .expect("Failed to build /orders request!");
             let response = self.base.client.request(request).await.ok()?;
+            log::info!("Create Order response: {:#?}", response);
             let body = response.into_body();
             extractor::extract_order(body).await
         } else {

@@ -147,6 +147,7 @@ impl Exchange {
     ) -> Option<http::Request<hyper::Body>> {
         let pair = String::from(pair);
         let order_request = models::OrderRequest { pair, amount, rate };
+        log::info!("Order request: {:#?}", order_request);
         let order_request = serde_json::to_vec(&order_request).unwrap();
         create_post_request_builder_with_url(&access_token, &self.orders)
             .header("Content-Type", "application/json")
