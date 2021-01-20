@@ -301,8 +301,13 @@ where
                 .expect("Failed to build /orders request!");
             let response = self.base.client.request(request).await.ok()?;
             log::info!("Create Order response: {:#?}", response);
-            let body = response.into_body();
-            extractor::extract_order(body).await
+            if response.status() != hyper::StatusCode::CREATED {
+                log::error!("Order response is bad: {}", response.status());
+                None
+            } else {
+                let body = response.into_body();
+                extractor::extract_order(body).await
+            }
         } else {
             None
         }
