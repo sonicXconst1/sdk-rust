@@ -1,9 +1,3 @@
-extern crate hyper_tls;
-extern crate iso_currency;
-extern crate isocountry;
-extern crate isolanguage_1;
-extern crate log;
-extern crate url;
 pub mod coin;
 pub mod context;
 pub mod endpoint;
@@ -17,3 +11,11 @@ pub mod coin_client;
 pub mod exchange_client;
 pub mod invoice_client;
 pub mod payment_system_client;
+pub mod chatex_client;
+
+pub use chatex_client::ChatexClient;
+pub use profile_client::ProfileClient;
+pub use coin_client::CoinClient;
+pub use exchange_client::ExchangeClient;
+pub use invoice_client::InvoiceClient;
+pub use payment_system_client::PaymentSystemClient;

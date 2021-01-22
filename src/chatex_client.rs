@@ -1,6 +1,6 @@
 use super::{
-    client_base, coin_client, endpoin, error, exchange_client, extractor, invoice_client,
-    models, payment_system_client, profile_client,
+    access_controller, client_base, coin_client, context, endpoint, exchange_client,
+    invoice_client, payment_system_client, profile_client,
 };
 use hyper;
 
