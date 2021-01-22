@@ -58,17 +58,19 @@ where
         ProcessResponse: 'static + Fn(hyper::Body) -> F,
     {
         let (header, body) = match self.client.request(request).await {
-            Ok(response) => response.into_parts(),
+            Ok(response) => {
+                response.into_parts()
+            },
             Err(error) => {
                 log::error!("{}", error);
                 return Err(error::Error::InternalServerError);
             },
         };
         if error::Error::is_error_code(header.status) {
-            Ok(process_response(body).await.unwrap())
-        } else {
             let error = error::Error::to_error(header.status, body).await;
             Err(error)
+        } else {
+            Ok(process_response(body).await.unwrap())
         }
     }
 }
