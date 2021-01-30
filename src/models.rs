@@ -67,7 +67,7 @@ pub struct Coin {
 
 pub type Orders = Vec<Order>;
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Order {
     pub amount: String,
     pub created_at: String,
@@ -82,7 +82,7 @@ pub struct Order {
     pub updated_at: String,
 }
 
-#[derive(serde::Serialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct OrderRequest {
     pub amount: String,
     pub pair: String,
@@ -274,6 +274,32 @@ pub(crate) mod test {
                 amount: "amount".to_owned(),
                 coin: "coin".to_owned(),
                 held: "held".to_owned(),
+            }
+        }
+    }
+
+    impl Default for Order {
+        fn default() -> Self {
+            Order {
+                amount: "37".to_owned(),
+                created_at: "created_at".to_owned(),
+                id: 1337,
+                initial_amount: None,
+                is_owner: None,
+                pair: "test/test".to_owned(),
+                rate: "13".to_owned(),
+                status: "status".to_owned(),
+                updated_at: "updated_at".to_owned(),
+            }
+        }
+    }
+
+    impl Default for OrderRequest {
+        fn default() -> Self {
+            OrderRequest {
+                pair: "test/test".to_owned(),
+                rate: "13".to_owned(),
+                amount: "37".to_owned(),
             }
         }
     }

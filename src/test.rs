@@ -37,12 +37,36 @@ impl TestCase {
     pub fn mock_access_token(&self) -> httpmock::MockRef {
         self.server.mock(|when, then| {
             when.method(httpmock::Method::POST)
+                .header("Authorization", "Bearer SECRET")
+                .header("Accept", "application/json")
                 .path("/auth/access-token");
             let access_token = serde_json::to_string(
                 &crate::models::AccessToken::default()).expect(SERDE_ERROR);
-            then.status(200)
-                .header("Content-Type", "application/json")
+            default_then_content_type(then)
+                .status(200)
                 .body(access_token);
         })
     }
+}
+
+pub fn default_get_when(when: httpmock::When) -> httpmock::When {
+    when
+        .method(httpmock::Method::GET)
+        .header("Accept", "application/json")
+        .header("Authorization", "Bearer TOKEN")
+}
+
+pub fn default_post_when(when: httpmock::When) -> httpmock::When {
+    default_when_content_type(when)
+        .method(httpmock::Method::POST)
+        .header("Accept", "application/json")
+        .header("Authorization", "Bearer TOKEN")
+}
+
+pub fn default_then_content_type(then: httpmock::Then) -> httpmock::Then {
+    then.header("Content-Type", "application/json")
+}
+
+pub fn default_when_content_type(when: httpmock::When) -> httpmock::When {
+    when.header("Content-Type", "application/json")
 }

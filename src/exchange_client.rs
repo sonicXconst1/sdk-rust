@@ -279,3 +279,83 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test::*;
+
+    fn create_exchange_client(test_case: &TestCase) -> ExchangeClient<Connector> {
+        ExchangeClient::new(
+            test_case.client_base.clone(),
+            std::sync::Arc::new(crate::endpoint::Exchange::new(
+                &test_case.base_context)))
+    }
+
+    fn create_test_pair() -> crate::coin::CoinPair {
+        crate::coin::CoinPair::new(
+            crate::coin::Coin::Unknown("test".to_owned()),
+            crate::coin::Coin::Unknown("test".to_owned()))
+    }
+
+    #[test]
+    fn get_all_orders() {
+        let case = TestCase::new();
+        let access_token_mock = case.mock_access_token();
+
+        let all_orders = vec![
+            crate::models::Order::default(),
+            crate::models::Order::default(),
+            crate::models::Order::default(),
+        ];
+        let all_orders = serde_json::to_string(&all_orders).expect(SERDE_ERROR);
+        let all_orders_mock = case.server.mock(|when, then| {
+            default_get_when(when)
+                .path("/exchange/orders")
+                .query_param("pair", "test/test");
+            default_then_content_type(then)
+                .status(200)
+                .body(all_orders.clone());
+        });
+        let client = create_exchange_client(&case);
+        let orders = client.get_all_orders(
+            create_test_pair(),
+            None,
+            None);
+        let orders = tokio_test::block_on(orders);
+        println!("{:#?}", orders);
+        let orders = serde_json::to_string(&orders.unwrap()).expect(SERDE_ERROR);
+        assert_eq!(orders, all_orders);
+        access_token_mock.assert();
+        all_orders_mock.assert();
+    }
+
+    #[test]
+    fn create_order() {
+        let case = TestCase::new();
+        let access_token_mock = case.mock_access_token();
+        let create_order_body = serde_json::to_string(
+            &crate::models::OrderRequest::default()).expect(SERDE_ERROR);
+        let created_order_body = serde_json::to_string(
+            &crate::models::Order::default()).expect(SERDE_ERROR);
+        let create_order_mock = case.server.mock(|when, then| {
+            default_post_when(when)
+                .path("/exchange/orders")
+                .body(create_order_body.clone());
+            default_then_content_type(then)
+                .status(201)
+                .body(created_order_body.clone());
+        });
+        let client = create_exchange_client(&case);
+        let created_order = client.create_order(
+            create_test_pair(),
+            37f64,
+            13f64);
+        let created_order = tokio_test::block_on(created_order).unwrap();
+        println!("{:#?}", created_order);
+        let created_order = serde_json::to_string(&created_order).expect(SERDE_ERROR);
+        assert_eq!(created_order_body, created_order);
+        access_token_mock.assert();
+        create_order_mock.assert();
+    }
+}
