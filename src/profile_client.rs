@@ -76,19 +76,22 @@ where
 
 #[cfg(test)]
 mod test {
+    use crate::test::*;
+
     #[test]
     fn profile_test() {
-        let test_case = crate::test::TestCase::new();
+        let test_case = TestCase::new();
         let access_token_mock = test_case.mock_access_token();
+
+        let basic_info = serde_json::to_string(
+            &crate::models::BasicInfo::default()).expect(SERDE_ERROR);
 
         let me_mock = test_case.server.mock(|when, then| {
             when.method(httpmock::Method::GET)
                 .path("/me");
-            let basic_info = serde_json::to_string(
-                &crate::models::BasicInfo::default()).expect(crate::test::SERDE_ERROR);
             then.status(200)
                 .header("Content-Type", "application/json")
-                .body(basic_info);
+                .body(basic_info.clone());
         });
 
         let profile = crate::endpoint::Profile::new(&test_case.base_context);
@@ -96,9 +99,12 @@ mod test {
         let profile_client = super::ProfileClient::new(
             test_case.client_base.clone(),
             profile);
-        let balance = profile_client.get_account_information();
-        let balance = tokio_test::block_on(balance);
-        println!("{:#?}", balance);
+        let account_information = profile_client.get_account_information();
+        let account_information = tokio_test::block_on(account_information);
+        println!("{:#?}", account_information);
+        let account_information = serde_json::to_string(&account_information.unwrap())
+            .expect(SERDE_ERROR);
+        assert_eq!(account_information, basic_info);
         access_token_mock.assert();
         me_mock.assert();
     }
