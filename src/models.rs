@@ -1,25 +1,25 @@
 use super::coin;
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct AccessToken {
     pub access_token: String,
     pub expires_at: i64,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct BasicInfo {
     pub id: i64,
     pub merchant_info: Option<MerchantInfo>,
     pub profile: Profile,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct MerchantInfo {
     pub name: String,
     pub usd_amount_max_limit: String,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Profile {
     pub country_code: String,
     pub email: Option<String>,
@@ -31,7 +31,7 @@ pub struct Profile {
     pub verification: Verification,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct AML5Limits {
     pub current_turnover: String,
     pub current_withdraw: String,
@@ -40,7 +40,7 @@ pub struct AML5Limits {
     pub withdraw_limit_daily: String,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Verification {
     pub current_level: String,
 }
@@ -203,6 +203,64 @@ impl std::fmt::Display for InvoiceStatus {
             InvoiceStatus::Active => formatter.write_str("ACTIVE"),
             InvoiceStatus::Completed => formatter.write_str("COMPLETED"),
             InvoiceStatus::Canceled => formatter.write_str("CANCELED"),
+        }
+    }
+}
+
+pub(crate) mod test {
+    use super::*;
+
+    impl Default for AccessToken {
+        fn default() -> Self {
+            AccessToken {
+                access_token: "TOKEN".to_owned(),
+                expires_at: 1337,
+            }
+        }
+    }
+
+    impl Default for BasicInfo {
+        fn default() -> Self {
+            BasicInfo {
+                id: 1337,
+                merchant_info: None,
+                profile: Default::default(),
+            }
+        }
+    }
+
+    impl Default for Profile {
+        fn default() -> Self {
+            Profile {
+                country_code: "country_code".to_owned(),
+                email: None,
+                is_finance_blocked: false,
+                lang_id: "lang_id".to_owned(),
+                limits: Default::default(),
+                phone: "phone".to_owned(),
+                username: "username".to_owned(),
+                verification: Default::default(),
+            }
+        }
+    }
+
+    impl Default for AML5Limits {
+        fn default() -> Self {
+            AML5Limits {
+                current_turnover: "current_turnover".to_owned(),
+                current_withdraw: "current_withdraw".to_owned(),
+                turnover_limit: "turnover_limit".to_owned(),
+                withdraw_limit: "withdraw_limit".to_owned(),
+                withdraw_limit_daily: "withdraw_limit_daily".to_owned(),
+            }
+        }
+    }
+
+    impl Default for Verification {
+        fn default() -> Self {
+            Verification {
+                current_level: "current_level".to_owned(),
+            }
         }
     }
 }
