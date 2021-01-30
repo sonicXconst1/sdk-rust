@@ -1,19 +1,19 @@
 use super::{client_base, endpoint, error, extractor, models};
 use hyper;
 
-pub struct PaymentSystemClient<'a, TConnector> {
-    base: &'a client_base::ClientBase<TConnector>,
-    payment_system: &'a endpoint::PaymentSystem,
+pub struct PaymentSystemClient<TConnector> {
+    base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+    payment_system: std::sync::Arc<endpoint::PaymentSystem>,
 }
 
-impl<'a, TConnector> PaymentSystemClient<'a, TConnector>
+impl<'a, TConnector> PaymentSystemClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     pub fn new(
-        base: &'a client_base::ClientBase<TConnector>,
-        payment_system: &'a endpoint::PaymentSystem,
-    ) -> PaymentSystemClient<'a, TConnector> {
+        base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+        payment_system: std::sync::Arc<endpoint::PaymentSystem>,
+    ) -> PaymentSystemClient<TConnector> {
         PaymentSystemClient {
             base,
             payment_system,
@@ -25,7 +25,7 @@ where
         estimate: models::Estimate,
     ) -> Result<models::FiatEstimations, error::Error> {
         let request = self.base.create_request(
-            self.payment_system,
+            self.payment_system.as_ref(),
             |access_token, payment_system| {
                 payment_system
                     .get_list_of_estimated_payment_systems(
@@ -52,7 +52,7 @@ where
         id: models::PaymentSystemId,
     ) -> Result<models::PaymentSystem, error::Error> {
         let request = self.base.create_request(
-            self.payment_system,
+            self.payment_system.as_ref(),
             |access_token, payment_system| {
                 payment_system
                     .get_payment_system_by_id(id, &access_token)

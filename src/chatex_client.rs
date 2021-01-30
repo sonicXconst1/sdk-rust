@@ -55,21 +55,24 @@ where
         profile_client::ProfileClient::new(self.base.clone(), self.profile.clone())
     }
 
-    pub fn coin(&self) -> coin_client::CoinClient<'_, TConnector> {
-        coin_client::CoinClient::new(&self.base, &self.coin)
+    pub fn coin(&self) -> coin_client::CoinClient<TConnector> {
+        coin_client::CoinClient::new(self.base.clone(), self.coin.clone())
     }
 
     pub fn exchange(&self) -> exchange_client::ExchangeClient<TConnector> {
         exchange_client::ExchangeClient::new(self.base.clone(), self.exchange.clone())
     }
 
-    pub fn invoice(&self) -> invoice_client::InvoiceClient<'_, TConnector> {
-        invoice_client::InvoiceClient::new(&self.base, &self.invoice)
+    pub fn invoice(&self) -> invoice_client::InvoiceClient<TConnector> {
+        invoice_client::InvoiceClient::new(self.base.clone(), self.invoice.clone())
     }
 
     pub fn payment_system(
         &self,
-    ) -> payment_system_client::PaymentSystemClient<'_, TConnector> {
-        payment_system_client::PaymentSystemClient::new(&self.base, &self.payment_system)
+    ) -> payment_system_client::PaymentSystemClient<TConnector> {
+        payment_system_client::PaymentSystemClient::new(
+            self.base.clone(),
+            self.payment_system.clone(),
+        )
     }
 }

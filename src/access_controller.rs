@@ -5,14 +5,14 @@ use super::extractor;
 use hyper;
 
 pub struct AccessController {
-    access_context: std::cell::RefCell<Option<context::AccessContext>>,
+    access_context: std::sync::RwLock<Option<context::AccessContext>>,
     profile: std::sync::Arc<endpoint::Profile>,
 }
 
 impl AccessController {
     pub fn new(profile: std::sync::Arc<endpoint::Profile>) -> AccessController {
         AccessController {
-            access_context: std::cell::RefCell::new(None),
+            access_context: std::sync::RwLock::new(None),
             profile,
         }
     }
@@ -25,8 +25,14 @@ impl AccessController {
     where
         TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
     {
-        if self.access_context.borrow().is_none()
-            || self.access_context.borrow().as_ref().unwrap().expired()
+        if self.access_context.read().unwrap().is_none()
+            || self
+                .access_context
+                .read()
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .expired()
         {
             log::info!("Requesting new access token!");
             let auth_request = self
@@ -46,14 +52,14 @@ impl AccessController {
                 let access_token = extractor::extract_access_token(auth_body)
                     .await
                     .expect("Failed to read the body of access token!");
-                self.access_context
-                    .replace(Some(context::AccessContext::new(
-                        api_context.base.clone(),
-                        access_token,
-                    )));
+                let mut context = self.access_context.write().unwrap();
+                *context = Some(context::AccessContext::new(
+                    api_context.base.clone(),
+                    access_token,
+                ));
             }
         }
-        self.access_context.borrow().as_ref().map_or_else(
+        self.access_context.read().unwrap().as_ref().map_or_else(
             || Err(error::Error::InternalServerError),
             |access_context| Ok(access_context.access_token.access_token.clone()),
         )

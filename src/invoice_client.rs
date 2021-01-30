@@ -4,19 +4,19 @@ use hyper;
 use iso_currency;
 use isolanguage_1;
 
-pub struct InvoiceClient<'a, TConnector> {
-    base: &'a client_base::ClientBase<TConnector>,
-    invoice: &'a endpoint::Invoice,
+pub struct InvoiceClient<TConnector> {
+    base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+    invoice: std::sync::Arc<endpoint::Invoice>,
 }
 
-impl<'a, TConnector> InvoiceClient<'a, TConnector>
+impl<TConnector> InvoiceClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     pub fn new(
-        base: &'a client_base::ClientBase<TConnector>,
-        invoice: &'a endpoint::Invoice,
-    ) -> InvoiceClient<'a, TConnector> {
+        base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+        invoice: std::sync::Arc<endpoint::Invoice>,
+    ) -> InvoiceClient<TConnector> {
         InvoiceClient { base, invoice }
     }
 
@@ -35,7 +35,7 @@ where
     ) -> Result<models::Invoices, error::Error> {
         let request = self
             .base
-            .create_request(self.invoice, |access_token, invoice| {
+            .create_request(self.invoice.as_ref(), |access_token, invoice| {
                 invoice
                     .get_invoices(
                         coins,
@@ -68,7 +68,7 @@ where
     ) -> Result<models::Invoices, error::Error> {
         let request = self
             .base
-            .create_request(self.invoice, |access_token, invoice| {
+            .create_request(self.invoice.as_ref(), |access_token, invoice| {
                 invoice
                     .create_invoice(create_invoice.clone(), &access_token)
                     .expect("Failed to build /invoices request!")
@@ -89,7 +89,7 @@ where
     ) -> Result<models::Invoice, error::Error> {
         let request = self
             .base
-            .create_request(self.invoice, |access_token, invoice| {
+            .create_request(self.invoice.as_ref(), |access_token, invoice| {
                 invoice
                     .get_invoice_by_id(id.into(), &access_token)
                     .expect("Failed to build /invoices/id request!")

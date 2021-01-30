@@ -6,27 +6,29 @@ use super::extractor;
 use super::models;
 use hyper;
 
-pub struct CoinClient<'a, TConnector> {
-    base: &'a client_base::ClientBase<TConnector>,
-    coin: &'a endpoint::Coin,
+pub struct CoinClient<TConnector> {
+    base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+    coin: std::sync::Arc<endpoint::Coin>,
 }
 
-impl<'a, TConnector> CoinClient<'a, TConnector>
+impl<TConnector> CoinClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     pub fn new(
-        base: &'a client_base::ClientBase<TConnector>,
-        coin: &'a endpoint::Coin,
-    ) -> CoinClient<'a, TConnector> {
+        base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+        coin: std::sync::Arc<endpoint::Coin>,
+    ) -> CoinClient<TConnector> {
         CoinClient { base, coin }
     }
 
     pub async fn get_available_coins(&self) -> Result<models::Coins, error::Error> {
-        let request = self.base.create_request(self.coin, |access_token, coin| {
-            coin.coins(&access_token)
-                .expect("Failed to build /coins request!")
-        });
+        let request =
+            self.base
+                .create_request(self.coin.as_ref(), |access_token, coin| {
+                    coin.coins(&access_token)
+                        .expect("Failed to build /coins request!")
+                });
         match request.await {
             Ok(request) => {
                 self.base
@@ -38,13 +40,14 @@ where
     }
 
     pub async fn get_coin(&self, coin: coin::Coin) -> Result<models::Coin, error::Error> {
-        let request =
-            self.base
-                .create_request(self.coin, |access_token, coin_endpoint| {
-                    coin_endpoint
-                        .coin(coin.clone(), &access_token)
-                        .expect("Failed to build /coins/name request!")
-                });
+        let request = self.base.create_request(
+            self.coin.as_ref(),
+            |access_token, coin_endpoint| {
+                coin_endpoint
+                    .coin(coin.clone(), &access_token)
+                    .expect("Failed to build /coins/name request!")
+            },
+        );
         match request.await {
             Ok(request) => {
                 self.base
