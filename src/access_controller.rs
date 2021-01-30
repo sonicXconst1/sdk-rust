@@ -6,11 +6,11 @@ use hyper;
 
 pub struct AccessController {
     access_context: std::cell::RefCell<Option<context::AccessContext>>,
-    profile: endpoint::Profile,
+    profile: std::sync::Arc<endpoint::Profile>,
 }
 
 impl AccessController {
-    pub fn new(profile: endpoint::Profile) -> AccessController {
+    pub fn new(profile: std::sync::Arc<endpoint::Profile>) -> AccessController {
         AccessController {
             access_context: std::cell::RefCell::new(None),
             profile,

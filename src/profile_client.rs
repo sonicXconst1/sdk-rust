@@ -5,19 +5,19 @@ use super::extractor;
 use super::models;
 use hyper;
 
-pub struct ProfileClient<'a, TConnector> {
-    base: &'a client_base::ClientBase<TConnector>,
-    profile: &'a endpoint::Profile,
+pub struct ProfileClient<TConnector> {
+    base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+    profile: std::sync::Arc<endpoint::Profile>,
 }
 
-impl<'a, TConnector> ProfileClient<'a, TConnector>
+impl<TConnector> ProfileClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     pub fn new(
-        base: &'a client_base::ClientBase<TConnector>,
-        profile: &'a endpoint::Profile,
-    ) -> ProfileClient<'a, TConnector> {
+        base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+        profile: std::sync::Arc<endpoint::Profile>,
+    ) -> ProfileClient<TConnector> {
         ProfileClient { base, profile }
     }
 
@@ -40,7 +40,7 @@ where
     pub async fn get_account_information(&self) -> Result<models::BasicInfo, error::Error> {
         let request = self
             .base
-            .create_request(self.profile, |access_token, profile| {
+            .create_request(self.profile.as_ref(), |access_token, profile| {
                 profile
                     .get_me(&access_token)
                     .expect("Failed to build /me request")
@@ -58,7 +58,7 @@ where
     pub async fn get_balance_summary(&self) -> Result<models::Balance, error::Error> {
         let request = self
             .base
-            .create_request(self.profile, |access_token, profile| {
+            .create_request(self.profile.as_ref(), |access_token, profile| {
                 profile
                     .get_balance(&access_token)
                     .expect("Failed to build /balance request")

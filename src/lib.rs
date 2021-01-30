@@ -19,3 +19,27 @@ pub use coin_client::CoinClient;
 pub use exchange_client::ExchangeClient;
 pub use invoice_client::InvoiceClient;
 pub use payment_system_client::PaymentSystemClient;
+
+#[cfg(test)]
+mod test {
+    struct MockConnector { }
+
+    use tower;
+
+    impl tower::Service<http::Request<hyper::Body>> for MockConnector {
+        type Response = http::Response<hyper::Body>;
+        type Error = http::Error;
+        type Future = std::pin::Pin<Box<dyn futures::Future<Output = Result<Self::Response, Self::Error>>>>;
+
+        fn poll_ready(
+            &mut self,
+            cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Result<(), Self::Error>> {
+            std::task::Poll::Ready(Ok(()))
+        }
+
+        fn call(&mut self, req: http::Request<hyper::Body>) -> Self::Future {
+            todo!()
+        }
+    }
+}

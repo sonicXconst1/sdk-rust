@@ -6,19 +6,19 @@ use super::extractor;
 use super::models;
 use hyper;
 
-pub struct ExchangeClient<'a, TConnector> {
-    base: &'a client_base::ClientBase<TConnector>,
-    exchange: &'a endpoint::Exchange,
+pub struct ExchangeClient<TConnector> {
+    base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+    exchange: std::sync::Arc<endpoint::Exchange>,
 }
 
-impl<'a, TConnector> ExchangeClient<'a, TConnector>
+impl<TConnector> ExchangeClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     pub fn new(
-        base: &'a client_base::ClientBase<TConnector>,
-        exchange: &'a endpoint::Exchange,
-    ) -> ExchangeClient<'a, TConnector> {
+        base: std::sync::Arc<client_base::ClientBase<TConnector>>,
+        exchange: std::sync::Arc<endpoint::Exchange>,
+    ) -> ExchangeClient<TConnector> {
         ExchangeClient { base, exchange }
     }
 
@@ -30,7 +30,7 @@ where
     ) -> Result<models::Orders, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .get_orders(pair.clone(), offset, limit, &access_token)
                         .expect("Failed to build /orders request!")
@@ -53,7 +53,7 @@ where
     ) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .post_order(
                             pair.clone(),
@@ -92,7 +92,7 @@ where
     ) -> Result<models::Orders, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .get_my_orders(
                             pair.clone(),
@@ -121,7 +121,7 @@ where
     ) -> Result<models::Trades, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .get_trades(order_id, offset, limit, &access_token)
                         .expect("Failed to build /trades request!")
@@ -139,7 +139,7 @@ where
     pub async fn get_trade_by_id(&self, id: &str) -> Result<models::Trade, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .get_trade_by_id(id, &access_token)
                         .expect("Failed to build /trades/id request!")
@@ -157,7 +157,7 @@ where
     pub async fn get_order_by_id(&self, id: &str) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .get_order_by_id(id, &access_token)
                         .expect("Failed to build /orders/id request!")
@@ -179,7 +179,7 @@ where
     ) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .update_order_by_id(id, order.clone(), &access_token)
                         .expect("Failed to build /orders/id request!")
@@ -200,7 +200,7 @@ where
     ) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .delete_order_by_id(id, &access_token)
                         .expect("Failed to build /orders/id request!")
@@ -221,7 +221,7 @@ where
     ) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .activate_order_by_id(id, &access_token)
                         .expect("Failed to build /orders/id/activate request!")
@@ -242,7 +242,7 @@ where
     ) -> Result<models::Order, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .deactivate_order_by_id(id, &access_token)
                         .expect("Failed to build /orders/id/activate request!")
@@ -264,7 +264,7 @@ where
     ) -> Result<models::Trade, error::Error> {
         let request =
             self.base
-                .create_request(self.exchange, |access_token, exchange| {
+                .create_request(self.exchange.as_ref(), |access_token, exchange| {
                     exchange
                         .create_trade_for_order(id, trade, &access_token)
                         .expect("Failed to build /orders/id/trade request!")
