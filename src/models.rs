@@ -9,6 +9,7 @@ pub struct AccessToken {
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct BasicInfo {
     pub id: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub merchant_info: Option<MerchantInfo>,
     pub profile: Profile,
 }
@@ -22,6 +23,7 @@ pub struct MerchantInfo {
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Profile {
     pub country_code: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub is_finance_blocked: bool,
     pub lang_id: String,
@@ -47,7 +49,7 @@ pub struct Verification {
 
 pub type Balance = Vec<Currency>;
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Currency {
     pub amount: String,
     pub coin: String,
@@ -70,7 +72,9 @@ pub struct Order {
     pub amount: String,
     pub created_at: String,
     pub id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub initial_amount: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_owner: Option<bool>,
     pub pair: String,
     pub rate: String,
@@ -260,6 +264,16 @@ pub(crate) mod test {
         fn default() -> Self {
             Verification {
                 current_level: "current_level".to_owned(),
+            }
+        }
+    }
+
+    impl Default for Currency {
+        fn default() -> Self {
+            Currency {
+                amount: "amount".to_owned(),
+                coin: "coin".to_owned(),
+                held: "held".to_owned(),
             }
         }
     }
