@@ -56,6 +56,27 @@ pub struct Currency {
     pub held: String,
 }
 
+pub mod typed {
+    use crate::coin;
+    use std::str::FromStr;
+
+    pub struct Currency {
+        pub coin: coin::Coin,
+        pub amount: f64,
+        pub held: f64,
+    }
+
+    impl From<super::Currency> for Currency {
+        fn from(currency: super::Currency) -> Self {
+            Currency {
+                coin: coin::Coin::from(currency.coin.as_ref()),
+                amount: f64::from_str(&currency.amount).unwrap(),
+                held: f64::from_str(&currency.held).unwrap(),
+            }
+        }
+    }
+}
+
 pub type Coins = Vec<Coin>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
