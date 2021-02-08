@@ -14,7 +14,7 @@
 */
 
 // Implementing it as enum mb bad idea. Seems like set of coins could change at runtime.
-#[derive(Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Coin {
     BTC,
     LTC,
@@ -53,7 +53,7 @@ impl std::fmt::Display for Coin {
     }
 }
 
-#[derive(Clone)]
+#[derive(PartialEq, Clone)]
 pub struct CoinPair {
     pub left: Coin,
     pub right: Coin,
