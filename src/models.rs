@@ -75,6 +75,42 @@ pub mod typed {
             }
         }
     }
+
+    pub struct Order {
+        pub amount: f64,
+        pub rate: f64,
+        pub pair: coin::CoinPair,
+    }
+
+    impl Order {
+        pub fn new(
+            pair: coin::CoinPair,
+            rate: f64,
+            amount: f64
+        ) -> Order {
+            Order {
+                rate,
+                amount,
+                pair,
+            }
+        }
+    }
+
+    impl From<Order> for super::Order {
+        fn from(order: Order) -> super::Order {
+            super::Order {
+                rate: format!("{}", order.rate),
+                amount: format!("{}", order.amount),
+                pair: String::from(&order.pair),
+                id: 1337,
+                initial_amount: None,
+                is_owner: None,
+                status: "status".to_owned(),
+                updated_at: "udpated_at".to_owned(),
+                created_at: "created_at".to_owned(),
+            }
+        }
+    }
 }
 
 pub type Coins = Vec<Coin>;
