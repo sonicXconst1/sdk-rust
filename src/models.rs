@@ -179,7 +179,7 @@ pub struct UpdateOrder {
 
 pub type Trades = Vec<Trade>;
 
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Trade {
     amount: String,
     created_at: String,
