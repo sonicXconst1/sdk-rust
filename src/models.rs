@@ -76,6 +76,7 @@ pub mod typed {
         }
     }
 
+    #[derive(Clone)]
     pub struct Order {
         pub amount: f64,
         pub rate: f64,
@@ -108,6 +109,20 @@ pub mod typed {
                 status: "status".to_owned(),
                 updated_at: "udpated_at".to_owned(),
                 created_at: "created_at".to_owned(),
+            }
+        }
+    }
+
+    impl From<Order> for super::Trade {
+        fn from(order: Order) -> super::Trade {
+            super::Trade {
+                amount: format!("{}", order.amount),
+                order: order.clone().into(),
+                created_at: "created_at".to_owned(),
+                updated_at: "udpated_at".to_owned(),
+                id: 32,
+                fee: "fee".to_owned(),
+                received_amount: "received_amount".to_owned(),
             }
         }
     }
