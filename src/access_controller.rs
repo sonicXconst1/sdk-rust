@@ -34,7 +34,7 @@ impl AccessController {
                 .unwrap()
                 .expired()
         {
-            log::info!("Requesting new access token!");
+            log::debug!("Requesting new access token!");
             let auth_request = self
                 .profile
                 .get_access_token(api_context)
