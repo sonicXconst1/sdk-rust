@@ -276,6 +276,7 @@ impl Exchange {
     ) -> Option<http::Request<hyper::Body>> {
         let mut url = self.orders.clone();
         url.path_segments_mut().unwrap().push(id).push(Self::TRADES);
+        log::info!("Url: {}, Body: {:#?}", url, serde_json::to_string(trade));
         let trade = serde_json::to_vec(trade).unwrap();
         create_post_request_builder_with_url(&access_token, &url)
             .header("Content-Type", "application/json")
