@@ -51,6 +51,7 @@ where
         amount: &str,
         rate: &str,
     ) -> Result<models::Order, error::Error> {
+        log::info!("Create order. Pair: {} Price: {} Rate {}", String::from(pair.clone()), amount, rate);
         let request =
             self.base
                 .create_request(self.exchange.as_ref(), |access_token, exchange| {
