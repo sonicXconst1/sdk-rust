@@ -181,13 +181,13 @@ pub type Trades = Vec<Trade>;
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Trade {
-    amount: String,
-    created_at: String,
-    fee: String,
-    id: u32,
-    order: Order,
-    received_amount: String,
-    updated_at: String,
+    pub amount: String,
+    pub created_at: String,
+    pub fee: String,
+    pub id: u32,
+    pub order: Order,
+    pub received_amount: String,
+    pub updated_at: String,
 }
 
 #[derive(serde::Serialize, Clone, Debug)]
