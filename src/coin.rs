@@ -12,9 +12,10 @@
     Coin { decimals: 9, full_name: "TON Crystal", name: "ton_crystal" }
 ]
 */
+use std::hash::Hash;
 
 // Implementing it as enum mb bad idea. Seems like set of coins could change at runtime.
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub enum Coin {
     BTC,
     LTC,
@@ -53,7 +54,7 @@ impl std::fmt::Display for Coin {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub struct CoinPair {
     pub left: Coin,
     pub right: Coin,
