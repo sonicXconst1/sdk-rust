@@ -39,7 +39,10 @@ impl AccessController {
                 .profile
                 .get_access_token(api_context)
                 .expect("Failed to create access_token request!");
-            let auth_response = client.request(auth_request).await.unwrap();
+            let auth_response = match client.request(auth_request).await {
+                Ok(response) => response,
+                Err(_) => return Err(error::Error::InternalServerError), 
+            };
             if error::Error::is_error_code(auth_response.status()) {
                 let error = error::Error::to_error(
                     auth_response.status(),
