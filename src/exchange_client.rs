@@ -51,7 +51,7 @@ where
         amount: &str,
         rate: &str,
     ) -> Result<models::Order, error::Error> {
-        log::info!("Create order. Pair: {} Price: {} Rate {}", String::from(pair.clone()), amount, rate);
+        log::debug!("Create order. Pair: {} Price: {} Rate {}", String::from(pair.clone()), amount, rate);
         let request =
             self.base
                 .create_request(self.exchange.as_ref(), |access_token, exchange| {
@@ -66,6 +66,7 @@ where
                 });
         match request.await {
             Ok(request) => {
+                log::debug!("Create order request: {:#?}", request);
                 self.base
                     .call_to_endpoint(request, |body| extractor::extract_order(body))
                     .await
@@ -272,6 +273,7 @@ where
                 });
         match request.await {
             Ok(request) => {
+                log::debug!("Create trade request: {:#?}", request);
                 self.base
                     .call_to_endpoint(request, |body| extractor::extract_trade(body))
                     .await
