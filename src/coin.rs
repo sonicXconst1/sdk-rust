@@ -41,7 +41,7 @@ impl Coin {
             Coin::ETH => "eth",
             Coin::TRX => "trx",
             Coin::DASH => "dash",
-            Coin::USDT => "usdt",
+            Coin::USDT => "usdt_erc20",
             Coin::TON => "ton_crystal",
             Coin::Unknown(name) => name,
         }
@@ -97,7 +97,7 @@ impl From<&str> for Coin {
             "eth" => Coin::ETH,
             "trx" => Coin::TRX,
             "dash" => Coin::DASH,
-            "usdt" => Coin::USDT,
+            "usdt_erc20" => Coin::USDT,
             "ton_crystal" => Coin::TON,
             _ => Coin::Unknown(String::from(coin)),
         }
@@ -115,7 +115,7 @@ impl From<Coin> for String {
             Coin::ETH => "eth".to_owned(),
             Coin::TRX => "trx".to_owned(),
             Coin::DASH => "dash".to_owned(),
-            Coin::USDT => "usdt".to_owned(),
+            Coin::USDT => "usdt_erc20".to_owned(),
             Coin::TON => "ton_crystal".to_owned(),
             Coin::Unknown(name) => name,
         }
